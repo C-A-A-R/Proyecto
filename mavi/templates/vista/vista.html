@@ -1,0 +1,36 @@
+{% load static %}
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+    <link rel="stylesheet" href="{% static 'css/vista/vista.css' %}">
+</head>
+<body>
+<!-- ******************Barra de navegacion****************** -->
+{% include "barras/nav.html" %}
+
+
+<!-- ******************Diapositiva******************  -->
+<div class="centrar-contenido">      
+    <div class="popupBody visible" id="popup1">
+        <p id="contador"> 0/4 </p> 
+        <img class="Diapositiva" id="Diapositiva" src="{% static "images/animacion_1.jpg" %}">
+        <video class="video" id="video" src="" muted autoplay controls> </video>
+    </div>
+</div>
+
+
+<!-- ******************Javascript****************** -->
+<script src="{% static 'js/vista/vista.js' %}"></script>
+
+<script>
+    var Fotos1 = [
+        {% for ruta_img in rutas_img %}
+            "{% static ruta_img %}",
+        {% endfor %}
+    ];
+
+    visualizador(Fotos1, 'popup1');
+</script>
+</body>
+</html>

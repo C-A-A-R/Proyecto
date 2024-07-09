@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planes de Servicios</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Hoja de estilos personalizada -->
+    <link rel="stylesheet" href="{% static "css/planes/planes.css" %}">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    {% include "barras/nav.html" %}
+
+    <header class="container-fluid mt-5">
+        <h1 class="text-center">Planes de Servicios</h1>
+    </header>
+
+    <!-- Contenedor para centrar las tablas -->
+    <div class="container mb-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-4 col-lg-3 mt-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="text-center">Básico</h2>
+                        <div class="text-center">
+                            <span class="cd-currency">$ 1</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group text-center">
+                            <li class="list-group-item bg-custom2"><strong>1 Día</strong> de Publicidad</li>
+                            <li class="list-group-item bg-custom1"><strong>1 imagen o video </strong> de 8 segundos</li>
+                            <li class="list-group-item bg-custom2"><strong>+250</strong> Reproducciones</li>
+                            <li class="list-group-item bg-custom1"><strong>24/7</strong> Soporte</li>
+                            <li class="list-group-item bg-custom2"><strong>El costo en Bs</strong> dependerá de la tasa
+                                del día</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="http://codyhouse.co/?p=429" class="btn btn-primary btn-block">Seleccionar</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Segunda tabla -->
+            <div class="col-12 col-md-4 col-lg-3 mt-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="text-center">Popular</h2>
+                        <div class="text-center">
+                            <span class="cd-currency">$ 2</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group text-center">
+                            <li class="list-group-item bg-custom2"><strong>3 Días</strong> de Publicidad</li>
+                            <li class="list-group-item bg-custom1"><strong>1 imagen o video</strong> de 8 segundos</li>
+                            <li class="list-group-item bg-custom2"><strong>+410</strong> Reproducciones</li>
+                            <li class="list-group-item bg-custom1"><strong>24/7</strong> Soporte</li>
+                            <li class="list-group-item bg-custom2"><strong>El costo en Bs</strong> dependerá de la tasa
+                                del día</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="http://codyhouse.co/?p=429" class="btn btn-primary btn-block">Seleccionar</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tercera tabla -->
+            <div class="col-12 col-md-4 col-lg-3 mt-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="text-center">Premium</h2>
+                        <div class="text-center">
+                            <span class="cd-currency">$ 5</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group text-center">
+                            <li class="list-group-item bg-custom2"><strong>7 Días</strong> de Publicidad</li>
+                            <li class="list-group-item bg-custom1"><strong>1 imagen o video</strong> de 8 segundos</li>
+                            <li class="list-group-item bg-custom2"><strong>+1200</strong> Reproducciones</li>
+                            <li class="list-group-item bg-custom1"><strong>24/7</strong> Soporte</li>
+                            <li class="list-group-item bg-custom2"><strong>El costo en Bs</strong> dependerá de la tasa
+                                del día</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="http://codyhouse.co/?p=429" class="btn btn-primary btn-block">Seleccionar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS y jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>

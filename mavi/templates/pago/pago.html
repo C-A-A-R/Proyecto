@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interfaz de Usuario</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static "css/pago/pago.css" %}">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <!-- Cuadro principal -->
+            <div class="col-lg-6 col-md-8 col-sm-12">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Subir Información</h5>
+                        <form>
+                            <!-- Input para el número de referencia -->
+                            <div class="form-group">
+                                <label for="referenceNumber">Número de Referencia</label>
+                                <input type="text" class="form-control" id="referenceNumber"
+                                    placeholder="Ingrese el número de referencia">
+                            </div>
+
+                            <!-- Mensaje de captura de pantalla -->
+                            <div class="form-group">
+                                <p>Por favor, capture una pantalla de esta información.</p>
+                            </div>
+
+                            <!-- Botón para subir una imagen -->
+                            <div class="form-group1 mb-5">
+                                <label for="uploadImage">Subir Imagen</label>
+                                <input type="file" class="form-control-file" id="uploadImage">
+                            </div>
+
+                            <!-- Botones de enviar y cancelar -->
+                            <div class="form-group mb-3 text-center">
+                                <!-- Grupo de formulario con margen inferior y centrado de texto -->
+                                <button type="submit" class="btn btn-primary">Enviar</button> <!-- Botón de envío -->
+                                <button type="button" class="btn btn-secondary ms-2">Cancelar</button>
+                                <!-- Botón de cancelación -->
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modo de pago -->
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div class="card">
+                    <div class="card-body2">
+                        <h5 class="card-title">Modo de Pago</h5>
+
+                        <!-- Pago Móvil -->
+                        <h6>Pago Móvil</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Banco:</strong> Nombre del Banco</li>
+                            <li><strong>Cédula:</strong> 12345678</li>
+                            <li><strong>Teléfono:</strong> +58 123 456 7890</li>
+                        </ul>
+
+                        <!-- Transferencia -->
+                        <h6>Transferencia</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Banco:</strong> Nombre del Banco</li>
+                            <li><strong>N° Cuenta:</strong> 0123456789</li>
+                            <li><strong>Tipo de Cuenta:</strong> Ahorro</li>
+                            <li><strong>Cédula:</strong> 12345678</li>
+                            <li><strong>Teléfono:</strong> +58 123 456 7890</li>
+                            <li><strong>Nombre y Apellido:</strong> Juan Pérez</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

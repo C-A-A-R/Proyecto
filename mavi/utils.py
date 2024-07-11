@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
-from .models import DatosUsuarios
+from .models import DataUser
 
 
 def auntenticate(request, correo, contraseña):
@@ -21,12 +21,12 @@ def auntenticate(request, correo, contraseña):
             request.session['id'] = user.id
             
         else:
-            return {'mensaje':'La contraseña es incorrecta.', 'estado':True}
+            return {'message':'La contraseña es incorrecta.', 'estado':True}
     else:
-        return {'mensaje':'El correo es invalido.', 'estado':False}
+        return {'message':'El correo es invalido.', 'estado':False}
     
     
-def registrate(request, cd):
+def register(request, cd):
     """Funcion que registra al usuario guardando sus datos en el modelo de User de django.
 
     Args:
@@ -34,33 +34,33 @@ def registrate(request, cd):
         cd (dict): diccionario que contiene los datos necesarios para el registro
 
     Returns:
-        dict: {'mensaje':mensaje, 'estado':bool}
+        dict: {'message':mensaje, 'estado':bool}
     """
     # Verificar si ya hay un email y correo igual
-    usuario = User.objects.filter(username=cd['usuario'][0]).exists()
-    correo = User.objects.filter(email=cd['correo'][0]).exists()
+    user = User.objects.filter(username=cd['user'][0]).exists()
+    email = User.objects.filter(email=cd['email'][0]).exists()
      
     # Guardar o registrar al nuevo usuario.
-    if not usuario and not correo :
-            nuevo_usuario = User()
-            nuevo_usuario.username = cd['usuario'][0]
-            nuevo_usuario.set_password(cd['contraseña'][0])
-            nuevo_usuario.first_name = cd['nombre'][0]
-            nuevo_usuario.last_name = cd['apellido'][0]
-            nuevo_usuario.email = cd['correo'][0]
-            nuevo_usuario.is_active = True
-            nuevo_usuario.save()
+    if not user and not email :
+            new_user = User()
+            new_user.username = cd['user'][0]
+            new_user.set_password(cd['password'][0])
+            new_user.first_name = cd['name'][0]
+            new_user.last_name = cd['last_name'][0]
+            new_user.email = cd['email'][0]
+            new_user.is_active = True
+            new_user.save()
             
-            datos_nuevo_usuario = DatosUsuarios()
-            datos_nuevo_usuario.auth_user = nuevo_usuario
+            datos_nuevo_usuario = DataUser()
+            datos_nuevo_usuario.auth_user = new_user
             datos_nuevo_usuario.sector = cd['sector'][0]
-            datos_nuevo_usuario.telefono = cd['telefono'][0]
+            datos_nuevo_usuario.phone = cd['phone'][0]
             datos_nuevo_usuario.save()
             
-            mensaje = '!A sido registrado exitosamente¡'
-            return {'mensaje':mensaje, 'estado':True}
+            message = '!A sido registrado exitosamente¡'
+            return {'message':message, 'status':True}
             
         # Indicar que el usuario o el email ya existe
     else:
             error = 'Este correo ya existe por farvor intentelo de nuevo.'
-            return {'mensaje':error, 'estado':False}
+            return {'message':error, 'status':False}

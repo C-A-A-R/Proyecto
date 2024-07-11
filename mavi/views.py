@@ -5,8 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
 # Modulos propios de la app
-from .models import DatosUsuarios, Imagenes
-from .utils import registrate, auntenticate
+from .models import DataUser, Imagenes
+from .utils import register, auntenticate
 
 
 #***************** Vistas que no nececitan iniciar sesion. *****************# 
@@ -16,41 +16,40 @@ def index(request):
 
 
 # Vista de inicio de seccion y registro.
-def iniciar_sesion_registrarse(request):
+def login_register(request):
     if request.method == 'POST':
         
         # Extraer datos del formulario.
         cd = dict(request.POST)
 
         # Si los datos son suficiente para un registro.
-        if 'registrarce' in cd:
+        if 'register' in cd:
             
             # Registrar al usuario nuevo sin usuario.
-            nuevo_usuario = registrate(request, cd)
+            new_user = register(request, cd)
             
             # Se renderiza login_registro.html con un mensaje que indica si fue exitoso o no el registro.
-            if nuevo_usuario['estado']:
-                return render(request, 'login_registro/login_registro.html', {'mensaje':nuevo_usuario['mensaje']})
+            if new_user['status']:
+                return render(request, 'login_registro/login_registro.html', {'message':new_user['message']})
         
             else:
-                return render(request, 'login_registro/login_registro.html', {'mensaje':nuevo_usuario['mensaje']})
+                return render(request, 'login_registro/login_registro.html', {'message':new_user['message']})
         
         # Si los datos no son suficiente para un registro se inicia sesion.
         else:    
+            print('***************',cd)
             # Verificar credenciales ingresadas con correo
-            # usuario = auntenticate(request, correo= cd['correo'][0], contraseña=cd['contraseña'][0])
-            # Verificar credenciales ingresadas con usuario
-            usuario = authenticate(request, username= cd['usuario'][0], password=cd['contraseña'][0])
+            user = authenticate(request, username= cd['user'][0], password=cd['password'][0])
 
             # Si estan validos lo loguea y redirige a index
-            if usuario != None:
-                login(request, usuario)
+            if user != None:
+                login(request, user)
                 return HttpResponseRedirect('/')
             
             # Si es incorrecto envia un mensaje de error y lo manda nuevamente al inicio de seccion
             else:
-                mensaje = 'Usuario o contraseña incorrectos'
-                return render(request, 'login_registro/login_registro.html', {'mensaje':mensaje})
+                message = 'Usuario o contraseña incorrectos'
+                return render(request, 'login_registro/login_registro.html', {'message':message})
         
     # Si hace peticiones via get
     else:
@@ -58,7 +57,7 @@ def iniciar_sesion_registrarse(request):
         
 
 # Vista de los precios o planes.
-def planes(request):
+def plans(request):
     return render(request, 'planes/planes.html')
 
 

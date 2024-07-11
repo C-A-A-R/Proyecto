@@ -19,14 +19,14 @@
           <form method="post">
             {% csrf_token %}
             <h1>Rigistro</h1>
-            <input name="nombre" type="text" placeholder="Nombre" required/>
-            <input name="apellido" type="text" placeholder="Apellido" required/>
-            <input name="usuario" type="text" placeholder="Usuario" required/>
-            <input name="correo" type="email" placeholder="Correo" required/>
+            <input name="name" type="text" placeholder="Nombre" required/>
+            <input name="last_name" type="text" placeholder="Apellido" required/>
+            <input name="user" type="text" placeholder="Usuario" required/>
+            <input name="email" type="email" placeholder="Correo" required/>
             <input name="sector" type="text" placeholder="Sector Donde Vive" required>
-            <input name="telefono" type="text" placeholder="Teléfono   ejem:+584321" required/>
-            <input name="contraseña" type="password" placeholder="Contraseña" required/>
-            <input type="text"  name="registrarce" hidden>
+            <input name="phone" type="text" placeholder="Teléfono   ejem:+584321" required/>
+            <input name="password" type="password" placeholder="Contraseña" required/>
+            <input type="text"  name="register" hidden>
             <br>
             <button type="submit" id="lila">Registrar</button>
           </form>
@@ -35,8 +35,8 @@
           <form method="post">
             {% csrf_token %}
             <h1>Iniciar Sesión</h1>
-            <input name="usuario" type="text" placeholder="Usuario" required/>
-            <input name="contraseña" type="password" placeholder="Contraseña" required/>
+            <input name="user" type="text" placeholder="Usuario" required/>
+            <input name="password" type="password" placeholder="Contraseña" required/>
             <a href="#">Olvidaste tu contraseña?</a>
             <button id="submit">Iniciar sesión</button>
           </form>
@@ -66,11 +66,11 @@
         </div>
       </div>
     </div>
-    <script src="{% static "js/login_registro/login_registro.js" %}"></script>
+    <script src="{% static 'js/login_registro/login_registro.js' %}"></script>
 
-    {% if mensaje %}
+    {% if message %}
       <script> 
-        mensaje('{{mensaje}}', 'login_registro/alerta-plantilla.html')
+        mensaje({{message}})
       </script>
     {% endif %}
   </body>

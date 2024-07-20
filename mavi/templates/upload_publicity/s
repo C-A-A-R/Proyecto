@@ -19,7 +19,7 @@
 
 <body>
 
-    {% include "barras/nav.html" %}
+    {% include "includes/nav.html" %}
 
     <div class="container mt-5"> <!-- Contenedor principal con margen superior -->
         <div class="row"> <!-- Fila de Bootstrap -->
@@ -73,6 +73,9 @@
             </div>
         </div>
     </div>
+
+    {% include "includes/footer.html" %}
+
 
     <!-- Enlace a la librería JavaScript de Bootstrap -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

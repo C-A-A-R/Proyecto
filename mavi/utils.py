@@ -1,7 +1,157 @@
-from django.shortcuts import render
+import datetime
+from django.db.models import Count
+from django.utils import timezone
+import os
+import uuid
+from django.shortcuts import redirect
 from django.contrib.auth.models import User
-from .models import DataUser
+from .models import DataUser, Publicity, Payment, TransmissionDay
 
+     
+def get_images_user(user_id):
+    """Funcion que obtiene todas las images relacionadas a un usuario teniendo en cuenta 
+    el borrado logico.
+
+    Args:
+        user_id (id): id del usuario del que se requiere obtener las imagenes
+
+    Returns:
+        list: lista con imagenes
+    """
+    publicities = Publicity.objects.filter(auth_user=user_id, removed=False)
+    
+    payments = Payment.objects.all()
+    
+    payments = []
+    for publicity in publicities:
+        payments.append(Payment.objects.get(id=publicity.id))
+
+    queryset = []
+
+
+    for publicity, payment in zip(publicities,payments):
+        publicity.publicity = str(publicity.publicity).replace('mavi/static/', '')
+        
+        if payment.reference_number == '' and payment.payment_proof == '':
+            publicity.pay = True
+            queryset.append(publicity)
+            
+        elif payment.payment_status == False:
+            publicity.pending = True
+            queryset.append(publicity)
+            
+        else:
+            queryset.append(publicity)
+
+    return queryset
+
+def reupload_publicity(request, publicity_id):
+    # publicity = Publicity.objects.get(id = publicity_id)
+    pass
+
+
+def delete_publicity(request, publicity_id):
+    Publicity.objects.filter(id=publicity_id).update(removed=True)
+    return redirect('/dashboard')
+    
+ 
+def generate_unique_name(publicity):
+    try:
+        """
+        Genera un nombre de archivo único.
+
+        Args:
+            publicity (UploadedFile): Archivo que se le quiera cambiar el nombre.
+
+        Returns:
+            str: El nombre de archivo único.
+        """
+        extension = os.path.splitext(publicity.name)[1]  # Obtener la extensión del archivo
+        base_name = os.path.splitext(publicity.name)[0]  # Obtener el nombre base del archivo
+        unique_name = f"{uuid.uuid4()}{extension}"  # Generar un nombre único con UUID
+        print()
+        return unique_name
+    except Exception as e:
+        print(f'A Ocurrido el error "{e}" en la funcion generar_nombre_unico del modulo utils.py')
+
+
+def find_day_available():
+    """Encuentra el primer día disponible a partir de hoy que tiene menos de 30 publicidades
+    agendadas.
+
+    Returns:
+        date: Fecha del primer día disponible.
+    """
+    
+    hoy = timezone.now().date()
+
+    # Realizar la consulta para encontrar el primer día disponible
+    day_available = (TransmissionDay.objects
+                      .filter(transmission_day__gte=hoy)
+                      .values('transmission_day')
+                      .annotate(total=Count('id'))
+                      .filter(total__lt=30)
+                      .order_by('transmission_day')
+                      .first())
+
+    if day_available:
+        return day_available['transmission_day']
+    else:
+        return hoy  # Si no se encuentra ningún día disponible, devolver hoy
+
+
+def schedule_publicity(publicity_id, days):
+    """Agenda la publicidad para los próximos 'plan' días asegurando que no haya más de 30
+    publicidades por día.
+
+    Args:
+        publicity_id (object): Instancia del modelo Publicity..
+        days (int): Número de días que la publicidad debe ser transmitida.
+
+    Returns:
+        bool: True si se agendó correctamente, False si no fue posible.
+    """
+    
+    scheduled = False
+    extra_days = 0
+    day_available = find_day_available()
+
+    for i in range(days):
+        while True:
+            date = day_available + datetime.timedelta(days=i+extra_days)
+            counter = TransmissionDay.objects.filter(transmission_day=date).count()
+
+            if counter < 30:
+                TransmissionDay.objects.create(publicity_id=publicity_id, transmission_day=date)
+                scheduled = True
+                break
+            else:
+                extra_days += 1
+
+    return scheduled
+    
+
+
+def save_puclicity(cd, form_publicity, user_id):
+     # Generar un nombre de archivo único para la publicidad
+        unique_name = generate_unique_name(form_publicity)
+        form_publicity.name = unique_name
+        
+        # Se genera una instancia del modelo Publicity y se crea un registro.
+        publicity = Publicity() 
+        publicity.auth_user = user_id
+        publicity.publicity = form_publicity
+        publicity.publicity_name = cd['name'][0]
+        publicity.days_transmit = cd['days'][0]
+        publicity.review_result = False
+        publicity.removed = False
+        publicity.save()
+        
+        # Se genera una instancia del modelo Payment y se crea un registro.
+        payment = Payment()
+        payment.publicity_id = publicity
+        payment.save()
+        
 
 def auntenticate(request, correo, contraseña):
     """Funcion que auntentifica las credenciales del usuario, usando request, correo y contraseña.

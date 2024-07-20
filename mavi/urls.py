@@ -1,17 +1,24 @@
 from django.urls import path
 
-from . import views
+from . import views, utils
 
 app_name = 'mavi'
 
 
 urlpatterns = [
+    # Rutas de app.
     path('', views.index, name='index'),
-    path('inicio_de_sesion/', views.login_register, name='login_register'),
-    # path('registro/', views.registro, name='registro'),
-    path('recuperar_contraseña/', views.recuperar_contraseña, name='recuperar_contraseña'),
-    path('logout/', views.cerrar_sesion, name='cerrar_sesion'),
-    path('planes/', views.planes, name='planes'),
-    path('subida/', views.subir_img, name='subida'),
-    path('pago/', views.pagos, name='pago')
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('login_register/', views.login_register, name='login_register'),
+    path('password_recovery/', views.recuperar_contraseña, name='password_recovery'),
+    path('logout/', views.logout, name='logout'),
+    path('plans/', views.plans, name='plans'),
+    path('upload_publicity/', views.upload_publicity, name='upload_publicity'),
+    path('payment/<str:publicity_id>', views.payment, name='payment'),
+    
+    
+    # Rutas para funcionalidas.
+    path('reupload_publicity/<str:publicity_id>', utils.reupload_publicity, name='reupload_publicity'),
+    path('delete_publicity/<str:publicity_id>', utils.delete_publicity, name='delete_publicity')
+    
 ]

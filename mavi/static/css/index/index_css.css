@@ -1,0 +1,130 @@
+/* Estilos generales para el encabezado, botones y secciones */
+
+ul {
+    list-style-type: none;
+  }
+.sublista {
+    display: none;
+  }
+.desplegable:hover .sublista {
+    display: block;
+  }
+
+
+body {
+    background-color: #e4d9ff; /* Puedes cambiar este color por el que desees */
+}
+
+.mavi-header,
+.mavi-button,
+.mavi-section {
+    background-color: #219abc;
+    color: #ffffff;
+    border-radius: 10px;
+    text-align: center;
+    margin-left: 20px;
+    
+}
+
+.btn {
+    display: block;
+    width: fit-content;
+    margin-top: 20px;
+}
+
+.mavi-button a {
+    background-color: #ffdd00;
+    color: black;
+    font-weight: bold;
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+}
+
+.mavi-button a:hover {
+    background-color: #273469;
+    color: #ffffff;
+}
+
+.mavi-services,
+.mavi-about,
+.mavi-reasons {
+    background-color: #273469;
+    color: #ffffff;
+    border-radius: 15px;
+}
+
+.mavi-reason-title {
+    background-color: #219abc;
+    color: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.mavi-reason-box {
+    background-color: #2a2d8f;
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.mavi-reason-box h5 {
+    margin-top: 20px;
+}
+
+.col a {
+    background-color: #ffdd00;
+    color: black;
+    font-weight: bold;
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+}
+
+.col a:hover {
+    background-color: #273469;
+    color: #ffffff;
+}
+
+.custom-container {
+    border: 2px solid #ccc;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.mavi-about {
+    background-color: #273469;
+    color: #ffffff;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 0 auto;
+    max-width: 80%;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .mavi-about {
+        margin-right: 10px;
+        margin-left: 10px;
+    }
+
+    .extra-margin-bottom {
+        flex-direction: row;
+    }
+}
+
+/* Contenedor de video para asegurar alineación correcta */
+.video-container {
+    display: flex;
+    justify-content: 1px;
+    align-items: center;
+}
+

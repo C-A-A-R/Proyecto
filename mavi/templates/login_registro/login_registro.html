@@ -12,7 +12,6 @@
     <title>login CSS</title>
   </head>
   <body>
-    {% include 'login_registro/alerta-plantilla.html' %}
     <div class="contenido-centrado">
       <div class="container" id="container">
         <div class="form-container sign-up-container">
@@ -68,10 +67,5 @@
     </div>
     <script src="{% static 'js/login_registro/login_registro.js' %}"></script>
 
-    {% if message %}
-      <script> 
-        mensaje({{message}})
-      </script>
-    {% endif %}
   </body>
 </html>

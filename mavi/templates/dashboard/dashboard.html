@@ -1,0 +1,70 @@
+{% load static %}
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAVI</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static "css/dashboard/dashboard.css" %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+
+</head>
+
+<body>
+    {% include "includes/nav.html" %}
+
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-4 d-flex justify-content-center">
+                    <a href="{% url 'mavi:upload_publicity' %}" class="custom-card-link">
+                        <div class="custom-card custom-card-plus">
+                            <i class="bi bi-plus-circle text-white"></i>
+                            <i class="text-white">Subir</i>
+                        </div>
+                    </a>
+                </div>
+                {% for img in images %}
+                <div class="col-4 d-flex justify-content-center position-relative">
+                    <div class="custom-card">
+                        <div class="button-group">
+                            <form action="{% url 'mavi:reupload_publicity' img.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-sm" title="Resubir"><i class="bi bi-shift-fill t"></i></button>
+                            </form>
+                            <form action="{% url 'mavi:delete_publicity' img.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm" title="Borrar"><i class="bi bi-trash-fill t"></i></button>
+                            </form>
+                        </div>
+
+                        {% if img.pending %}
+                            <div class="button-payment">
+
+                                    <button  class="btn btn-success btn-sm" title="Comprobando el Pago"><i class="i-payment">Pendiente</i></button>
+                            </div>
+                        {% elif img.pay %}
+                            <div class="button-payment">
+                                <form action="{% url 'mavi:payment' img.id %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm" title="Pagar"><i class="i-payment">Pagar</i></button>
+                                </form>
+                            </div>
+                        {% endif %} 
+                        <div class="custom-card-image">
+                            <img src="{% static img.publicity %}" alt="{{ img.publicity_name }}">
+                        </div>
+                        <div class="custom-card-text">
+                            <p>{{ img.publicity_name }}</p>
+                            <p>Fecha</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    {% include "includes/footer.html" %}
+</body>
+
+</html>

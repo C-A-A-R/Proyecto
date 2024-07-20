@@ -1,18 +1,18 @@
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
-from django.contrib.auth import logout, login, authenticate
+from django.shortcuts import render, redirect
+from django.contrib.auth import logout as logout_method, login, authenticate
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 
 # Modulos propios de la app
-from .models import DataUser, Imagenes
-from .utils import register, auntenticate
+from .models import DataUser, Publicity, Payment
+from .utils import register, auntenticate, get_images_user, save_puclicity
 
 
 #***************** Vistas que no nececitan iniciar sesion. *****************# 
 
 def index(request):
-    return render(request, 'index.html')
+    return render(request, 'index/index.html')
 
 
 # Vista de inicio de seccion y registro.
@@ -44,7 +44,7 @@ def login_register(request):
             # Si estan validos lo loguea y redirige a index
             if user != None:
                 login(request, user)
-                return HttpResponseRedirect('/')
+                return redirect('/dashboard')
             
             # Si es incorrecto envia un mensaje de error y lo manda nuevamente al inicio de seccion
             else:
@@ -58,7 +58,7 @@ def login_register(request):
 
 # Vista de los precios o planes.
 def plans(request):
-    return render(request, 'planes/planes.html')
+    return render(request, 'plans/plans.html')
 
 
 # Vista de recuperacion dec contraseña.
@@ -73,33 +73,43 @@ def recuperar_contraseña(request):
 
 #***************** Vistas que nececitan iniciar sesion. *****************# 
 
+@login_required
+def dashboard(request):
+    user_id = request.user.id
+    images = get_images_user(user_id)
+    return render(request, 'dashboard/dashboard.html', {'images':images})
+
+
 # Vista para cerrar seccion.
 @login_required
-def cerrar_sesion(request):
-    logout(request)
+def logout(request):
+    logout_method(request)
     return HttpResponseRedirect('/')
 
 
 # Vista donde se subiran las imagenes.
 @login_required
-def subir_img(request):
+def upload_publicity(request):
     if request.method ==  'POST':
         
         # Se obtiene la imagen del formulario
-        form_imagen = request.FILES['imagen']
+        form_publicity = request.FILES['publicity']
         # Se obtienen el resto de datos
         cd = dict(request.POST)
         
-        print(cd, '||||', form_imagen)
+        save_puclicity(cd, form_publicity, request.user)
+       
+
+        return redirect('/dashboard')
     else:
-        return render(request, 'subir_img/subir_img.html')
+        return render(request, 'upload_publicity/upload_publicity.html')
     
     
 # Vista que reproducira las imagenes
 def vista(request):
     
     # Extraer todos los registros del modelo Imagenes
-    imagenes = Imagenes.objects.all()
+    imagenes = Publicity.objects.all()
     
     # Crear una lista vacia para guardar las rutas de las imagenes
     rutas_img = []
@@ -121,10 +131,25 @@ def vista(request):
 
 
 # Vista que se encargara de los pagos
-def pagos(request):
+def payment(request, publicity_id):
     if request.method == 'POST':
-        pass
+        if len(request.POST) > 1:
+            
+            payment_proof = request.FILES['payment_proof']
+            reference_number = request.POST['reference_number']
+            # Se debe de actualiazar la bd no crear un nuevo registro
+            payment = Payment.objects.get(id=int(publicity_id), reference_number='', payment_proof='')
+
+            payment.reference_number = reference_number
+            payment.payment_proof = payment_proof
+            payment.save()
+            
+            return redirect('/dashboard')
+        
+        else:
+            return render(request, 'payment/payment.html')
     
     else:
-        return render(request, 'pago/pago.html')
+        print('************Get')
+        return render(request, 'payment/payment.html')
         

@@ -7,10 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interfaz de Usuario</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static "css/pago/pago.css" %}">
+    <link rel="stylesheet" href="{% static "css/payment/payment.css" %}">
 </head>
 
 <body>
+    {% include "includes/nav.html" %}
     <div class="container mt-5">
         <div class="row justify-content-center">
             <!-- Cuadro principal -->
@@ -18,12 +19,13 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <h5 class="card-title">Subir Información</h5>
-                        <form>
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
                             <!-- Input para el número de referencia -->
                             <div class="form-group">
                                 <label for="referenceNumber">Número de Referencia</label>
-                                <input type="text" class="form-control" id="referenceNumber"
-                                    placeholder="Ingrese el número de referencia">
+                                <input type="text" class="form-control" id="referenceNumber" 
+                                name="reference_number" placeholder="Ingrese el número de referencia" >
                             </div>
 
                             <!-- Mensaje de captura de pantalla -->
@@ -34,7 +36,7 @@
                             <!-- Botón para subir una imagen -->
                             <div class="form-group1 mb-5">
                                 <label for="uploadImage">Subir Imagen</label>
-                                <input type="file" class="form-control-file" id="uploadImage">
+                                <input type="file" class="form-control-file" id="uploadImage" name="payment_proof">
                             </div>
 
                             <!-- Botones de enviar y cancelar -->
@@ -78,7 +80,7 @@
             </div>
         </div>
     </div>
-
+    {% include "includes/footer.html" %}
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User 
-from django.utils.timezone import now
+from django.utils import timezone
 
 
 
@@ -10,25 +10,28 @@ class DataUser(models.Model):
     sector = models.TextField()
 
 
-class Imagenes(models.Model):
+class Publicity(models.Model):
     auth_user = models.ForeignKey(User, on_delete=models.CASCADE)
-    fecha_de_contrato = models.DateTimeField(default= now())
-    modo = models.BooleanField(default=False)
-    imagenes = models.ImageField(upload_to='mavi/static/img')
+    contract_date = models.DateTimeField(default= timezone.now())
+    publicity = models.ImageField(upload_to='mavi/static/img')
+    publicity_name = models.CharField(max_length=120)
+    days_transmit = models.CharField(max_length=3)
+    review_result = models.BooleanField()
+    removed =  models.BooleanField(default=False)
+
+class TransmissionDay(models.Model):
+    publicity_id = models.ForeignKey(Publicity, on_delete=models.CASCADE)   
+    transmission_day = models.DateField()
     
 
-class DiasDeTrasmiciones(models.Model):
-    imagen = models.ForeignKey(Imagenes, on_delete=models.CASCADE)   
-    dia_de_trasmicion = models.DateField()
+class PasswordRecovery(models.Model):
+    auth_user = models.ForeignKey(User, on_delete=models.CASCADE) 
+    code = models.CharField(max_length=12)
     
-
-class RecuperarContraseña(models.Model):
-      auth_user = models.ForeignKey(User, on_delete=models.CASCADE) 
-      codigo = models.CharField(max_length=12)
-      
            
-class Pagos(models.Model):
-    imagenesID = models.ForeignKey(Imagenes, on_delete=models.CASCADE)
-    capture_comprobante = models.ImageField(upload_to='mavi/static/img/captures_comprobantes')
-    numero_de_referencia = models.CharField(max_length=50)
-    dia_de_envio = models.DateTimeField(default= now())
+class Payment(models.Model):
+    publicity_id = models.ForeignKey(Publicity, on_delete=models.CASCADE)
+    payment_proof = models.ImageField(upload_to='mavi/static/img/captures_comprobantes')
+    reference_number = models.CharField(max_length=50)
+    sending_day = models.DateTimeField(default= timezone.now())
+    payment_status = models.BooleanField(default=False)

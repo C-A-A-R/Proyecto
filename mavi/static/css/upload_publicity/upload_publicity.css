@@ -4,6 +4,10 @@ body {
     background-color: #e4d9ff;
 }
 
+.mt-5{
+    margin-bottom: 3rem; 
+}
+
 .card {
     border-radius: 10px;
     box-shadow: 0 4px 6px;

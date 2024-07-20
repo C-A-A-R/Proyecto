@@ -1,0 +1,95 @@
+a {
+    text-decoration: none; /* Quita el subrayado del enlace */
+}
+.custom-card {
+    width: 16rem;
+    height: 17rem;
+    background-color: #219ebc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 1rem;
+    margin: 1rem;
+    overflow: hidden; /* Asegura que el contenido no se desborde */
+    position: relative; /* Permite el posicionamiento de los botones */
+}
+
+.custom-card-plus {
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+}
+
+.custom-card-image {
+    height: 75%; /* Altura original de la tarjeta */
+    width: 100%;
+    background-color: #219ebc; /* Color de fondo de la parte de la imagen */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1; /* Asegura que la imagen esté por debajo de los botones */
+
+}
+
+.custom-card img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover; /* Asegura que la imagen cubra todo el espacio sin distorsión */
+}
+
+.custom-card-text {
+    width: 30%;
+    background-color: #219ebc; /* Color de fondo diferente para la parte de texto */
+    text-align: center;
+    padding: 0.5rem;
+}
+
+p{
+    margin-bottom: 0%;
+}
+
+.button-group {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    z-index: 2; /* Asegura que los botones estén encima de la imagen */
+    opacity: 0; /* Oculta los botones por defecto */
+    transform: translateX(20px); /* Mueve los botones fuera de la vista por defecto */
+    transition: opacity 0.3s ease, transform 0.3s ease; /* Transición suave para mostrar/ocultar */
+
+}
+
+.custom-card:hover .button-group {
+    opacity: 1; /* Muestra los botones cuando se pasa el cursor por encima de la tarjeta */
+    transform: translateX(0); /* Mueve los botones a su posición original */
+}
+
+.button-group button {
+    margin-bottom: 0.25rem;
+    height: 3rem;
+    width: 3rem;
+}
+
+.button-payment{
+    position: absolute;
+    /* display: flex;
+    flex-direction: column; */
+    z-index: 2; /* Asegura que los botones estén encima de la imagen */
+    height: 6rem;
+    width: 100%;
+}
+
+.i-payment{
+    font-size: 1.3rem;
+    padding: 0 1rem 0 1rem;
+}
+
+form{
+    margin: 0%;
+}
+
+body{
+    background-color: #e4d9ff;
+}

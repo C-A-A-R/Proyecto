@@ -54,9 +54,9 @@
                             <div class="form-group mb-4"> <!-- Grupo de formulario con margen inferior -->
                                 <label for="opciones">Seleccione el plan:</label> <!-- Etiqueta del menú desplegable -->
                                 <select class="form-select" id="opciones" name="days"> <!-- Menú desplegable -->
-                                    <option value="1">Básico $1</option> <!-- Opción del menú desplegable -->
-                                    <option value="3">Popular $2</option> <!-- Opción del menú desplegable -->
-                                    <option value="7">Premium $5</option> <!-- Opción del menú desplegable -->
+                                    <option value="1" {% if selected_plan == 'basic' %}selected{% endif %}>Básico $1</option>
+                                    <option value="3" {% if selected_plan == 'popular' %}selected{% endif %}>Popular $2</option>
+                                    <option value="7" {% if selected_plan == 'premium' %}selected{% endif %}>Premium $5</option>
                                 </select>
                             </div>
 

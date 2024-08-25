@@ -4,20 +4,22 @@ a{
 }
 
 .barra{
-     margin: 0 auto;
-     display: flex;
-     justify-content: center;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
 }
 
 .blanco{
     color: #ffffff;
 }
 
-img{
-    height: 2em;
-    width: 2em;
+.img{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.6em; /* Ajusta el tamaño según sea necesario */
+    width: 2.6em;  /* Ajusta el tamaño según sea necesario */
 }
-
 .btn-amarillo{
     background: yellow;
     border-radius: 20px;
@@ -36,6 +38,10 @@ img{
     font-size: 3em;
 }
 
+.navbar-dark{
+    background-color:#02247c;
+}
+
 .navbar-nav .nav-link {
     font-size: 1.25em; /* Ajusta este valor según sea necesario */
 }
@@ -43,4 +49,24 @@ img{
 /* Estilos para desplegar submenus en hover */
 .nav-item.dropdown:hover .dropdown-menu {
     display: block;
+}
+
+.navbar-nav .nav-link {
+    position: relative;
+    color: #ffffff; /* Asegúrate de que el color del texto sea blanco */
+}
+
+.navbar-nav .nav-line::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px; /* Ajusta el grosor de la línea */
+    bottom: -2px; /* Ajusta la posición de la línea */
+    left: 0;
+    background-color: #ffffff; /* Color de la línea */
+    transition: width 0.3s;
+}
+
+.navbar-nav .nav-line:hover::after {
+    width: 100%;
 }

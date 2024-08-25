@@ -1,7 +1,7 @@
 {% load static %}
 <link rel="stylesheet" href="{% static "css/includes/nav.css" %}">
 
-<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:#02247c;">
+<nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container-fluid">
       <a class="navbar-brand logo" href="{% url "mavi:index" %}">MAVI</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
@@ -10,19 +10,14 @@
       <div class="collapse navbar-collapse" id="navbarNavDropdown">
         <ul class="navbar-nav barra blanco">
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{% url "mavi:dashboard"%}">Inicio</a>
+            <a class="nav-link nav-line active" aria-current="page" href="{% url "mavi:dashboard"%}">Inicio</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="#">Visualización</a>
+            <a class="nav-link nav-line active" href="{% url "mavi:screen"%}">Pantalla</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="{% url "mavi:plans" %}">Planes</a>
+            <a class="nav-link nav-line active" href="{% url "mavi:plans" %}">Planes</a>
           </li>
-          {% if pago %}
-            <li class="nav-item">
-              <a class="nav-link active" href="{% url "mavi:payment" %}">Pagos</a>
-            </li>
-          {% endif %}
           
           <li class="nav-item dropdown desplegable">
             <a class="nav-link active dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -37,22 +32,26 @@
         </ul>
         {% if request.user.is_authenticated %}
     <ul class="navbar-nav  blanco">
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <li class="nav-item dropdown">
           <!-- Aqui va la imagen. -->
-          <img src="user.png" alt="" class="img"> {{ request.user.first_name }} 
-        </a>
-        <ul class="dropdown-menu">
-        <li><a class="dropdown-item" href="#">Action</a></li>
-        <li><a class="dropdown-item" href="#">Another action</a></li>
-        <li><a class="dropdown-item" href="{% url "mavi:logout" %}">Cerrar sesión</a></li>
-        </ul>
-    </li>
-
+          <!-- <i class="bi bi-person-circle img" width="3rem" height="3rem"></i> -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-person-circle img" viewBox="0 0 16 16">
+            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+          </svg>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            {{ request.user.first_name }} 
+          </a>
+          <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="#">Action</a></li>
+          <li><a class="dropdown-item" href="#">Another action</a></li>
+          <li><a class="dropdown-item" href="{% url "mavi:logout" %}">Cerrar sesión</a></li>
+          </ul>
+      </li>
     </ul>
   {% else %}
-    <!-- <button class="btn-amarillo"><a class="negro" href="#">Inicio sesión</a></button>
-    <button class="btn-amarillo"><a class="negro" href="#">Registrarse</a></button> -->
     <ul class="navbar-nav barra-left">
       <li class="nav-item">
         <button class="btn-amarillo buttom"><a class="" href="{% url "mavi:login_register" %}">Inicio sesión</a></button>
@@ -65,3 +64,4 @@
       </div>
     </div>
   </nav>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script> -->

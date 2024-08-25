@@ -1,13 +1,15 @@
+import copy
 import datetime
 from django.db.models import Count
 from django.utils import timezone
 import os
 import uuid
 from django.shortcuts import redirect
+from django.contrib import messages
 from django.contrib.auth.models import User
 from .models import DataUser, Publicity, Payment, TransmissionDay
 
-     
+
 def get_images_user(user_id):
     """Funcion que obtiene todas las images relacionadas a un usuario teniendo en cuenta 
     el borrado logico.
@@ -20,24 +22,42 @@ def get_images_user(user_id):
     """
     publicities = Publicity.objects.filter(auth_user=user_id, removed=False)
     
-    payments = Payment.objects.all()
-    
     payments = []
     for publicity in publicities:
-        payments.append(Payment.objects.get(id=publicity.id))
+        if  Payment.objects.filter(publicity_id=publicity.id).exists():
+            payments.append(Payment.objects.get(publicity_id=publicity.id))
+        else:
+            payments.append([])
 
     queryset = []
 
 
     for publicity, payment in zip(publicities,payments):
         publicity.publicity = str(publicity.publicity).replace('mavi/static/', '')
-        
-        if payment.reference_number == '' and payment.payment_proof == '':
+            
+        if (publicity.review_result == 'rejected') and (not payment):
+            publicity.rejected_image = True
+            queryset.append(publicity)
+            
+        elif (publicity.review_result == 'accepted') and (not payment):
             publicity.pay = True
             queryset.append(publicity)
             
-        elif payment.payment_status == False:
-            publicity.pending = True
+        elif not payment:
+            publicity.pending_image = True
+            queryset.append(publicity)
+            
+        elif TransmissionDay.objects.filter(publicity_id=publicity, transmission_day=timezone.now()).exists():
+            publicity.transmitting = True
+            queryset.append(publicity)
+            
+        elif payment.payment_status == 'pending':
+            publicity.pending_payment = True
+            queryset.append(publicity)
+            
+            
+        elif payment.payment_status == 'rejected':
+            publicity.rejected_payment = True
             queryset.append(publicity)
             
         else:
@@ -46,15 +66,29 @@ def get_images_user(user_id):
     return queryset
 
 def reupload_publicity(request, publicity_id):
-    # publicity = Publicity.objects.get(id = publicity_id)
-    pass
+    publicity = Publicity.objects.get(id = publicity_id)
+    # Marca la publicidad original como removida
+    publicity.removed = True
+    publicity.save()
 
+    # Crear una nueva instancia de Publicity replicando la original
+    new_publicity = copy.copy(publicity)  # Realiza una copia superficial del objeto original
+    new_publicity.pk = None  # Asegúrate de que la nueva instancia tenga un nuevo ID (nuevo registro)
+    
+    new_publicity.review_result = 'accepted'  # Establece el nuevo estado de revisión
+    new_publicity.removed = False  # Asegúrate de que la nueva publicidad no esté marcada como eliminada
+    new_publicity.save()  # Guarda la nueva instancia en la base de datos
+
+    # Agrega un mensaje de éxito
+    messages.success(request, 'La publicidad ha sido re-subida correctamente.')
+    
+    return redirect('/dashboard')
 
 def delete_publicity(request, publicity_id):
     Publicity.objects.filter(id=publicity_id).update(removed=True)
     return redirect('/dashboard')
     
- 
+
 def generate_unique_name(publicity):
     try:
         """
@@ -69,7 +103,6 @@ def generate_unique_name(publicity):
         extension = os.path.splitext(publicity.name)[1]  # Obtener la extensión del archivo
         base_name = os.path.splitext(publicity.name)[0]  # Obtener el nombre base del archivo
         unique_name = f"{uuid.uuid4()}{extension}"  # Generar un nombre único con UUID
-        print()
         return unique_name
     except Exception as e:
         print(f'A Ocurrido el error "{e}" en la funcion generar_nombre_unico del modulo utils.py')
@@ -96,6 +129,7 @@ def find_day_available():
 
     if day_available:
         return day_available['transmission_day']
+    
     else:
         return hoy  # Si no se encuentra ningún día disponible, devolver hoy
 
@@ -111,12 +145,11 @@ def schedule_publicity(publicity_id, days):
     Returns:
         bool: True si se agendó correctamente, False si no fue posible.
     """
-    
     scheduled = False
     extra_days = 0
     day_available = find_day_available()
 
-    for i in range(days):
+    for i in range(int(days)):
         while True:
             date = day_available + datetime.timedelta(days=i+extra_days)
             counter = TransmissionDay.objects.filter(transmission_day=date).count()
@@ -125,6 +158,7 @@ def schedule_publicity(publicity_id, days):
                 TransmissionDay.objects.create(publicity_id=publicity_id, transmission_day=date)
                 scheduled = True
                 break
+            
             else:
                 extra_days += 1
 
@@ -133,7 +167,7 @@ def schedule_publicity(publicity_id, days):
 
 
 def save_puclicity(cd, form_publicity, user_id):
-     # Generar un nombre de archivo único para la publicidad
+    # Generar un nombre de archivo único para la publicidad
         unique_name = generate_unique_name(form_publicity)
         form_publicity.name = unique_name
         
@@ -143,15 +177,9 @@ def save_puclicity(cd, form_publicity, user_id):
         publicity.publicity = form_publicity
         publicity.publicity_name = cd['name'][0]
         publicity.days_transmit = cd['days'][0]
-        publicity.review_result = False
         publicity.removed = False
         publicity.save()
-        
-        # Se genera una instancia del modelo Payment y se crea un registro.
-        payment = Payment()
-        payment.publicity_id = publicity
-        payment.save()
-        
+
 
 def auntenticate(request, correo, contraseña):
     """Funcion que auntentifica las credenciales del usuario, usando request, correo y contraseña.
@@ -174,8 +202,8 @@ def auntenticate(request, correo, contraseña):
             return {'message':'La contraseña es incorrecta.', 'estado':True}
     else:
         return {'message':'El correo es invalido.', 'estado':False}
-    
-    
+
+
 def register(request, cd):
     """Funcion que registra al usuario guardando sus datos en el modelo de User de django.
 
@@ -184,12 +212,12 @@ def register(request, cd):
         cd (dict): diccionario que contiene los datos necesarios para el registro
 
     Returns:
-        dict: {'message':mensaje, 'estado':bool}
+        dict: {'message':mensaje, 'status':bool}
     """
     # Verificar si ya hay un email y correo igual
     user = User.objects.filter(username=cd['user'][0]).exists()
     email = User.objects.filter(email=cd['email'][0]).exists()
-     
+
     # Guardar o registrar al nuevo usuario.
     if not user and not email :
             new_user = User()

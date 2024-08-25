@@ -1,0 +1,14 @@
+.alert-wrapper{
+    position: fixed;
+    top: 0;  /* Ajusta la distancia desde la parte superior */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;  /* Asegura que el mensaje esté por encima de otros elementos */
+    width: 90%;  /* Controla el ancho del mensaje, ajusta según sea necesario */
+    max-width: 600px;  /* Limita el ancho máximo */
+}
+
+.small-icon{
+    width: 2rem;
+    height: 2rem;
+}

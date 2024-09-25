@@ -1,0 +1,90 @@
+/* Aquí puedes agregar tus estilos personalizados */
+
+body {
+    background-color: #e4d9ff;
+}
+
+.mt-5{
+    margin-bottom: 3rem; 
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px;
+}
+
+.card-title {
+    color: #000000;
+}
+
+.form-control {
+    border-radius: 5px;
+}
+
+.btn-primary {
+    background-color: #ffb703;
+    border-color: #ffb703;
+    color: #000000;
+}
+
+.btn-primary:hover {
+    background-color: #2f2c79;
+    border-color: #2f2c79;
+    color: #ffffff;
+}
+
+.btn-secondary {
+    background-color: #cdcdcd;
+    border-color: #cdcdcd;
+    color: #000000;
+}
+
+.btn-secondary:hover {
+    background-color: #2f2c79;
+    border-color: #2f2c79;
+    color: #ffffff;
+}
+
+.card-body {
+    background-color: #219ebc;
+    border-radius: 10px;
+}
+
+.input-group-text {
+    color: #2f2c79;
+    /* Cambia el color del texto "Seleccionar Archivo" a azul */
+}
+
+
+/* Estilo para la nube de comentario */
+.comment-bubble {
+    position: relative;
+    background: #ffbf75;
+    /* Color de fondo de la nube */
+    border-radius: 10px;
+    /* Radio de borde para esquinas redondeadas */
+    padding: 3px 10px;
+    /* Espaciado interno */
+    margin-top: 10px;
+    /* Margen superior para separación */
+    color: #000000;
+    /* Color del texto */
+    font-size: 14px;
+    /* Tamaño de la fuente */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    /* Sombra para la nube */
+}
+
+.comment-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    /* Posición en la parte inferior */
+    left: 20px;
+    /* Posición desde la izquierda */
+    border-width: 8px;
+    /* Ancho del triángulo */
+    border-style: solid;
+    border-color: #ffbf75 transparent transparent transparent;
+    /* Color del triángulo */
+}

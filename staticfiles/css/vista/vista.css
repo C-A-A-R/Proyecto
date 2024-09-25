@@ -1,0 +1,168 @@
+
+body {   
+    background-color: #E4D9FF;   
+  }
+/****************pop up****************/
+
+img {
+  max-width: 100%;
+} 
+
+
+p {
+  color: whitesmoke;
+}
+
+.popupBody{      
+  position: fixed;
+  top: 1.5vh;
+  left: 10%;
+  right: 10%;
+  width: 80%;
+  height: 80%;
+  display: flex;  
+  align-items: center; 
+  border-radius: 1vh;
+  /* border: 1vh solid  rgba(141, 2, 255, 0.5);;  *******************/
+  box-shadow: 0 0 5px #CCC;
+  /*background: rgb(175, 119, 227,0.5);*/
+  background: url("images/patitas.png");
+  transition: opacity 500ms;
+  visibility: hidden;
+  opacity: 0;
+  z-index: 8;
+}
+
+.visible{  
+  transition: opacity 500ms;
+  visibility: visible;
+  opacity: 1;
+}
+
+
+.popupBody:target {
+  visibility: visible;
+  opacity: 1;
+  
+  
+}
+
+
+/* #cerrar{     ****************************
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  transition: all 200ms;
+  font-size: 30px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #F00;
+  z-index: 11;
+}  **************************** */
+  
+
+.popupBody {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;  
+    align-items: center; 
+    justify-content: center; 
+    /* background: url("images/patitas.png"); */
+    opacity: 1;
+    z-index: 8;
+}
+  
+  /**************galeria*****************/
+  
+  
+/* .botonD {
+  position: absolute;
+  top: 0;
+  right: 15px;
+  z-index:10;
+}  
+  
+  
+.botonI {
+  position: absolute;
+  left: 10px;
+  top: 0;
+  z-index: 10;
+}
+   */
+
+#Diapositiva {
+ position: absolute;
+ top: 0;
+ left: 0; 
+ right: 0;
+ bottom: 0;
+ width: 80%;
+ height: 80%;
+ margin: auto;
+ background: rgb(33, 158, 188);
+ object-fit: contain;
+ z-index: 9; 
+}	
+  
+#Diapositiva img{    
+  max-width: 100%;
+  max-height: 100%;
+}
+    
+#video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 80%;
+  height: 80%;
+  margin: auto;
+  background: rgb(33, 158, 188);
+  object-fit: contain;
+  z-index: 7;
+}
+
+#video video{ 
+  max-width: 100%;
+  max-height: 100%;
+  z-index: 7;
+}
+
+
+.fadein {
+  opacity: 100;
+  transition: 1s;
+}
+
+.fadeout {
+  opacity: 0;
+  transition: 1s;
+}
+
+
+#contador{
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 60px;
+  margin: auto;
+  width: 6vh;
+  color: rgba(0, 0, 0,1);
+  font-size: 2vh;
+  border-radius: 1.5vh;
+  border: 0.6vh solid  rgb(33, 158, 188);;
+  background-color: rgba(250, 250, 250, 0.6);
+  z-index: 11;
+  text-align: center;
+}
+#cerrar {
+    display: none; /* Ocultar el botón de cerrar */
+}
+.Diapositiva {
+    display: none;
+}

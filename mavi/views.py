@@ -1,22 +1,16 @@
-from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout as logout_method, login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from django.urls import reverse
-from django.core.mail import send_mail
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-from django.template.loader import render_to_string
-from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
-from django.utils.html import strip_tags
+from django.utils.encoding import force_str
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.models import User
 
 # Modulos propios de la app
-from .models import DataUser, Publicity, Payment, TransmissionDay
-from .utils import generate_unique_name, register, auntenticate, get_images_user, save_puclicity
+from .models import Publicity, Payment, TransmissionDay
+from .utils import generate_unique_name, register, get_images_user, save_puclicity, send_emails, confirm_email
 from . import message
 
 #***************** Vistas que no nececitan iniciar sesion. *****************# 
@@ -36,18 +30,32 @@ def login_register(request):
             # Registrar al usuario nuevo sin usuario.
             new_user = register(request, cd)
             
-            # Se renderiza login_registro.html con un mensaje que indica si fue exitoso o no el registro.
+            # Se realiza el proceso de confirmación de correo.
             if new_user['status']:
-                messages.success(request, message.REGISTRATION_SUCCESS_MESSAGE)
-                return render(request, 'login_registro/login_registro.html')
-        
+                confirm_email(request, new_user['new_user'])
+                
+                return redirect('mavi:register_done')
             else:
-                return render(request, 'login_registro/login_registro.html')
+                return render(request, 'login_register/login_register.html')
         
         # Si los datos no son suficiente para un registro se inicia sesion.
-        else:    
-            # Verificar credenciales ingresadas con correo
-            user = authenticate(request, username= cd['user'][0], password=cd['password'][0])
+        else:   
+            
+            try:
+                user = User.objects.get(username=cd['user'][0])
+            except User.DoesNotExist:
+                user = None
+            
+            
+            if user is not None:
+                # Verificar si la cuenta está inactiva
+                if not user.is_active:
+                    messages.error(request, "Tu cuenta está inactiva. Por favor, verifica tu correo para activarla.")
+                    confirm_email(request, user)
+                    return render(request, 'login_register/register_done.html')
+
+                # Verificar credenciales ingresadas con correo
+                user = authenticate(request, username= cd['user'][0], password=cd['password'][0])
 
             # Si estan validos lo loguea y redirige a index
             if user != None:
@@ -57,12 +65,40 @@ def login_register(request):
             # Si es incorrecto envia un mensaje de error y lo manda nuevamente al inicio de seccion
             else:
                 messages.error(request, message.LOGIN_ERROR_MESSAGE)
-                return render(request, 'login_registro/login_registro.html')
+                return render(request, 'login_register/login_register.html')
         
     # Si hace peticiones via get
     else:
-        return render(request, 'login_registro/login_registro.html')    
+        return render(request, 'login_register/login_register.html')    
         
+        
+def register_done_viewes(request):
+    return render(request, 'login_register/register_done.html')
+    
+
+def activate_account_view(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        # Activar el usuario
+        user.is_active = True
+        user.save()
+
+        # Iniciar sesión automáticamente
+        login(request, user)
+
+        # Redirigir al dashboard
+        messages.success(request, message.REGISTRATION_SUCCESS_MESSAGE)
+        return redirect('/dashboard')
+    else:
+        # Si el token es inválido
+        messages.error(request, "El enlace de activación no es válido o ha expirado.")
+        return render(request, 'login_register/login_register.html')
+
 
 # Vista de los precios o planes.
 def plans(request):
@@ -76,24 +112,7 @@ def password_reset_request_view(request):
             users = User.objects.filter(email=email)
             if users.exists():
                 user = users[0]
-                token = default_token_generator.make_token(user)
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-                reset_link = request.build_absolute_uri(
-                    reverse('mavi:password_reset_confirm', kwargs={'uidb64': uid, 'token': token})
-                )
-
-                # Renderizar la plantilla HTML con el contexto
-                mail_subject = 'Restablecimiento de contraseña solicitado'
-                html_message = render_to_string('password_reset/password_reset_email.html', {
-                    'user': user,
-                    'reset_link': reset_link,
-                })
-                plain_message = strip_tags(html_message)  # Mensaje en texto plano como alternativa
-                from_email = 'aragozaca@gmail.com'
-                to_email = [user.email]
-
-                # Enviar el correo
-                send_mail(mail_subject, plain_message, from_email, to_email, html_message=html_message)
+                send_emails(request, user, url_name='mavi:password_reset_confirm', email_template='password_reset/password_reset_email.html')
 
                 return redirect('mavi:password_reset_done')
     else:
@@ -154,11 +173,11 @@ def upload_publicity(request):
     if request.method ==  'POST':
         
         # Se obtiene la imagen del formulario
-        form_publicity = request.FILES['publicity']
+        advertising_image = request.FILES['publicity']
         # Se obtienen el resto de datos
         cd = dict(request.POST)
         
-        save_puclicity(cd, form_publicity, request.user)
+        save_puclicity(cd, advertising_image, request.user)
 
         messages.success(request, message.PUBLICITY_SAVE_SUCCESS_MESSAGE)
         return redirect('/dashboard')
@@ -174,37 +193,27 @@ def screen(request):
     publicity_ids = TransmissionDay.objects.filter(transmission_day=today).values_list('publicity_id', flat=True)
     
     # Extraer todos los registros del modelo Imagenes
-    publicity = Publicity.objects.filter(id=publicity_ids)
-    
-    # Crear una lista vacia para guardar las rutas de las imagenes
-    rutas_publicity = []
-    
-    # for que recorre los registros para sacar todas las imagenes.
-    for imagen in publicity:
-        
-        # Extraer la ruta de la imagen 
-        ruta = imagen.publicity
-        
-        # Formatear la ruta para que el javascript pueda encontrar correctamente la imagen
-        ruta = str(ruta).replace('admin_app/static/', '')
-        # Agregar la ruta formateada a la lista
-        rutas_publicity.append(ruta)
-        
+    publicities = Publicity.objects.filter(id__in=publicity_ids)
+
     # renderizar la plantilla adecauada y enviar las rutas de las imagenes 
-    return render(request, 'vista/vista.html', {'rutas_img':rutas_publicity})   
+    return render(request, 'vista/vista.html', {'publicities':publicities})   
 
 
 # Vista que se encargara de los pagos
 @login_required
 def payment(request):
-    if request.method == 'POST':
+    if (request.method == 'POST') and ('payment_proof' in request.FILES):
         payment_proof = request.FILES['payment_proof']
         unique_name = generate_unique_name(payment_proof)
         payment_proof.name = unique_name
         
-        publicity_id = request.POST.get('publicity_id')
-        publicity_id = Publicity.objects.get(id=publicity_id)
-        
+        try:
+            publicity_id = request.POST.get('publicity_id')
+            publicity_id = Publicity.objects.get(id=publicity_id)
+        except:
+            messages.error(message.PAYMENT_SAVE_ERROR_MESSAGE)
+            redirect('/dashboard')
+            
         reference_number = request.POST['reference_number']
         
         payment = Payment()
@@ -217,5 +226,7 @@ def payment(request):
         return redirect('/dashboard')
         
     else:
-        return render(request, 'payment/payment.html')
+        if request.POST.get('publicity_id'):
+            publicity_id = request.POST.get('publicity_id')
+        return render(request, 'payment/payment.html', {'publicity_id':publicity_id})
         

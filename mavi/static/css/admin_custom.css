@@ -1,0 +1,57 @@
+/* static/css/admin_custom.css */
+.image-thumbnail {
+    width: 6rem;
+    height: 6rem;
+    background-size: contain;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.image-thumbnail:hover {
+    transform: scale(1.1);
+}
+
+.image-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100vw; 
+    height: 100vh; 
+    display: none;
+    justify-content: center;
+    align-items: center; 
+    z-index: 1000;
+    background-color: #011031cc;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    
+}
+
+.image-popup img {
+    max-width: 85%;
+    max-height: 85%; 
+    background-size: contain;
+}
+
+.image-popup:target {
+    display: flex;
+}
+
+.image-popup a {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 30px;
+    font-weight: bold;
+    text-decoration: none;
+    z-index: 1001;
+    /* background: rgba(0, 0, 0, 0.5); */
+    padding: 5px 10px;
+    /* border-radius: 50%; */
+    transition: background 0.3s, transform 0.2s;
+}
+
+.image-popup a:hover {
+    /* background: rgba(255, 0, 0, 0.8); */
+    transform: scale(1.2);
+}

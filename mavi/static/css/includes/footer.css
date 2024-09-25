@@ -24,13 +24,17 @@
     margin: 0;
 }
 
-/* Asegúrate de que el body y el html ocupen el 100% de la altura */
 html, body {
     height: 100%;
     margin: 0;
+}
+
+body {
     display: flex;
     flex-direction: column;
 }
-.container-main {
-    flex: 1;
+
+.custom-footer {
+    margin-top: auto; /* Asegura que el footer esté al fondo */
+    background-color: #02247c;
 }

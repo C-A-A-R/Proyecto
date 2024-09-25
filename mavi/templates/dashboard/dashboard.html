@@ -30,16 +30,6 @@
                 {% for img in images %}
                 <div class="col-4 d-flex justify-content-center position-relative">
                     <div class="custom-card">
-                        <div class="button-group">
-                            <form action="{% url 'mavi:reupload_publicity' img.id %}" method="post" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-primary btn-sm" title="Resubir"><i class="bi bi-shift-fill t"></i></button>
-                            </form>
-                            <form action="{% url 'mavi:delete_publicity' img.id %}" method="post" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger btn-sm" title="Borrar"><i class="bi bi-trash-fill t"></i></button>
-                            </form>
-                        </div>
 
                         {% if img.pending_payment %}
                             <div class="button-payment">
@@ -73,14 +63,35 @@
                         <div class="button-payment">
                                 <button  class="btn btn-danger btn-sm" title="Problemas con el Pago"><i class="i-payment">Pago Rechazado</i></button>
                         </div>
+
                         {% endif %} 
+                        
                         <div class="custom-card-image">
-                            <img src="{% static img.publicity %}" alt="{{ img.publicity_name }}">
+                            <img src="{{ img.publicity.url }}" alt="{{ img.publicity_name }}">
                         </div>
                         <div class="custom-card-text">
                             <p>{{ img.publicity_name }}</p>
                             <p>Fecha</p>
                         </div>
+
+                    <div class="button-group">
+
+                        {% if img.finished %}
+                            <form action="{% url 'mavi:reupload_publicity' img.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-sm" title="Resubir"><i class="bi bi-shift-fill t"></i></button>
+                            </form>
+                        {% endif %}
+
+                        {% if not img.transmitting and not img.pending_payment %}
+                        <form action="{% url 'mavi:delete_publicity' img.id %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm" title="Borrar"><i class="bi bi-trash-fill t"></i></button>
+                        </form>
+                        {% endif %}
+                    </div>
+
+
                     </div>
                 </div>
                 {% endfor %}

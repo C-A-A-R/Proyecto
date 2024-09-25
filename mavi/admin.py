@@ -1,20 +1,82 @@
-from import_export import resources, fields
 from import_export.admin import ExportActionModelAdmin
-from import_export.formats.base_formats import XLSX  # Puedes cambiar a otro formato si lo prefieres
-
-from openpyxl import Workbook
-from openpyxl.drawing.image import Image as ExcelImage
-import io
-from PIL import Image as PilImage
-
-from django.http import HttpResponse
+from import_export.formats.base_formats import XLSX, Format
 from django.contrib import admin
-from django.utils.html import format_html
+from django import forms
+from .models import DataUser, Publicity, Payment
+from .utils import make_naive
+from import_export import resources, fields
+from .form_admin import DataUserExportForm, PaymentExportForm
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Group
-from .models import Publicity, DataUser, Payment
-from django.utils import timezone
+from django.utils.html import format_html
+from reportlab.lib.pagesizes import A4,landscape
+from reportlab.pdfgen import canvas
+from io import BytesIO
+
+
+class PDF(Format):
+    def get_title(self):
+        return "pdf"
+
+    def get_extension(self):
+        return "pdf"
+
+    def get_content_type(self):
+        return "application/pdf"
+
+    def export_data(self, dataset, **kwargs):
+        buffer = BytesIO()
+        pdf_canvas = canvas.Canvas(buffer, pagesize=landscape(A4))  # Usamos la orientación horizontal
+        width, height = landscape(A4)
+
+        # Definir las coordenadas iniciales
+        x = 50
+        y = height - 50  # Reducimos el margen superior
+
+        # Título del documento
+        pdf_canvas.setFont("Helvetica-Bold", 14)
+        pdf_canvas.drawString(x, y, "Exportación de Datos de Usuario")
+        y -= 40
+
+        # Escribir los nombres de las columnas
+        pdf_canvas.setFont("Helvetica-Bold", 12)
+        column_width = (width - 100) // len(dataset.headers)  # Ajustar el ancho de las columnas
+
+        for i, col in enumerate(dataset.headers):
+            pdf_canvas.drawString(x + (i * column_width), y, col)
+
+        y -= 20
+
+        # Escribir los datos
+        pdf_canvas.setFont("Helvetica", 10)
+        for row in dataset.dict:
+            if y < 50:  # Si la posición Y es demasiado baja, saltar a una nueva página
+                pdf_canvas.showPage()
+                pdf_canvas.setFont("Helvetica-Bold", 12)
+                y = height - 50  # Reiniciar la posición Y para la nueva página
+                
+                # Dibujar los encabezados en la nueva página
+                for i, col in enumerate(dataset.headers):
+                    pdf_canvas.drawString(x + (i * column_width), y, col)
+                y -= 20
+                pdf_canvas.setFont("Helvetica", 10)
+
+            for i, col in enumerate(dataset.headers):
+                pdf_canvas.drawString(x + (i * column_width), y, str(row[col]))
+            y -= 20
+
+        # Terminar el PDF
+        pdf_canvas.save()
+        pdf = buffer.getvalue()
+        buffer.close()
+        return pdf
+
+    def is_binary(self):
+        return True
+
 
 admin.site.unregister(Group)
+
 
 @admin.register(Publicity)
 class PublicityAdmin(admin.ModelAdmin):
@@ -60,75 +122,6 @@ class PublicityAdmin(admin.ModelAdmin):
         queryset = queryset.filter(review_result='pending')
         return queryset
 
-# Función para redimensionar imágenes
-def resize_image(image, max_width, max_height):
-    # Redimensionar la imagen manteniendo la relación de aspecto
-    width_ratio = max_width / image.width
-    height_ratio = max_height / image.height
-    new_ratio = min(width_ratio, height_ratio)
-    
-    new_width = int(image.width * new_ratio)
-    new_height = int(image.height * new_ratio)
-    
-    return image.resize((new_width, new_height), PilImage.Resampling.LANCZOS)
-
-# Función para exportar datos con imágenes y ajustar tamaño de celdas
-def export_with_images(queryset):
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Datos de Pagos"
-
-    headers = [
-        'ID de Usuario', 'Nombre', 'Apellido', 'Nombre de Publicidad', 
-        'Publicidad', 'Dias De Trasnmision', 'Fecha de Pago', 
-        'Referencia De Pago', 'Captura de Pago', 'Estado de Pago'
-    ]
-    ws.append(headers)
-
-    # Definir tamaños para redimensionar las imágenes
-    max_img_width = 300  # Ancho máximo en píxeles
-    max_img_height = 200  # Altura máxima en píxeles
-
-    for row_num, obj in enumerate(queryset, start=2):  # Comienza desde la segunda fila porque la primera es el encabezado
-        row_data = [
-            obj.publicity_id.auth_user.id if obj.publicity_id else 'N/A',
-            obj.publicity_id.auth_user.first_name if obj.publicity_id else 'N/A',
-            obj.publicity_id.auth_user.last_name if obj.publicity_id else 'N/A',
-            obj.publicity_id.publicity_name if obj.publicity_id else 'N/A',
-            '',  # Espacio reservado para la imagen de publicidad
-            obj.publicity_id.days_transmit if obj.publicity_id else 'N/A',
-            str(obj.sending_day),
-            obj.reference_number,
-            '',  # Espacio reservado para la imagen de captura de pago
-            obj.payment_status
-        ]
-        ws.append(row_data)
-
-        # Insertar imagen de publicidad
-        if obj.publicity_id and obj.publicity_id.publicity:
-            img = PilImage.open(obj.publicity_id.publicity.path)
-            resized_img = resize_image(img, max_img_width, max_img_height)
-            img_io = io.BytesIO()
-            resized_img.save(img_io, format='PNG')
-            img_io.seek(0)
-            excel_img = ExcelImage(img_io)
-            ws.add_image(excel_img, f'E{row_num}')  # Colocar la imagen en la columna E
-
-        # Insertar imagen de captura de pago
-        if obj.payment_proof:
-            img = PilImage.open(obj.payment_proof.path)
-            resized_img = resize_image(img, max_img_width, max_img_height)
-            img_io = io.BytesIO()
-            resized_img.save(img_io, format='PNG')
-            img_io.seek(0)
-            excel_img = ExcelImage(img_io)
-            ws.add_image(excel_img, f'I{row_num}')  # Colocar la imagen en la columna I
-
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = f'attachment; filename=Datos_de_Pagos_{timezone.now().strftime("%Y%m%d%H%M%S")}.xlsx'
-    
-    wb.save(response)
-    return response
 
 class PaymentResource(resources.ModelResource):
     # Definir campos personalizados para exportación
@@ -136,12 +129,12 @@ class PaymentResource(resources.ModelResource):
     first_name = fields.Field(attribute='publicity_id__auth_user__first_name', column_name='Nombre')
     last_name = fields.Field(attribute='publicity_id__auth_user__last_name', column_name='Apellido')
     publicity_name = fields.Field(attribute='publicity_id__publicity_name', column_name='Nombre de Publicidad')
-    publicity = fields.Field(attribute='publicity_id__publicity', column_name='Publicidad')
-    days_transmit = fields.Field(attribute='publicity_id__days_transmit', column_name='Dias De Trasnmision')
-    sending_day = fields.Field(column_name='Fecha de Pago')
-    reference_number = fields.Field(column_name='Referencia De Pago')
-    payment_proof_base64 = fields.Field(column_name='Captura de Pago')
-    payment_status = fields.Field(column_name='Estado de Pago')
+    # publicity = fields.Field(attribute='publicity_id__publicity', column_name='Publicidad')  # Cambiado a publicity
+    days_transmit = fields.Field(attribute='publicity_id__days_transmit', column_name='Días de Transmisión')
+    sending_day = fields.Field(attribute='sending_day', column_name='Fecha de Pago')
+    reference_number = fields.Field(attribute='reference_number', column_name='Referencia de Pago')
+    # payment_proof = fields.Field(attribute='payment_proof', column_name='Captura de Pago')  # Cambiado a payment_proof
+    payment_status = fields.Field(attribute='payment_status', column_name='Estado de Pago')
 
     class Meta:
         model = Payment
@@ -150,18 +143,61 @@ class PaymentResource(resources.ModelResource):
             'first_name',
             'last_name',
             'publicity_name',
-            'publicity_image_base64',  # Campo personalizado para la imagen en base64
+            # 'publicity',  # Cambiado a publicity
             'days_transmit',
             'sending_day',
             'reference_number',
-            'payment_proof_base64',  # Campo personalizado para la imagen en base64
+            # 'payment_proof',  # Cambiado a payment_proof
             'payment_status'
         )
         export_order = fields  # Opcional: Define el orden de exportación
+    
+    def get_export_headers(self, fields=None):
+        """
+        Genera los encabezados de las columnas en base a los campos seleccionados.
+        """
+        headers = []
+        # Si hay campos seleccionados, obtenemos sus nombres
+        for field in fields or self.get_fields():
+            headers.append(self.fields[field].column_name or field)
+        return headers
 
-    def get_queryset(self):
-        # Optimizamos las consultas utilizando select_related
-        return super().get_queryset().select_related('publicity_id')
+    
+    def export_resource(self, obj, fields=None):
+        """
+        Exporta un objeto en función de los campos seleccionados.
+
+        :param obj: El objeto (instancia de Payment) a exportar.
+        :param fields: Los campos que se deben exportar.
+        :returns: Una lista con los valores exportados.
+        """
+        data = []
+        
+        # Mapeo de campos de Payment y campos relacionados de publicity y auth_user
+        field_mapping = {
+            'auth_user': obj.publicity_id.auth_user.id if obj.publicity_id and obj.publicity_id.auth_user else 'N/A',
+            'first_name': obj.publicity_id.auth_user.first_name if obj.publicity_id and obj.publicity_id.auth_user else 'N/A',
+            'last_name': obj.publicity_id.auth_user.last_name if obj.publicity_id and obj.publicity_id.auth_user else 'N/A',
+            'publicity_name': obj.publicity_id.publicity_name if obj.publicity_id else 'N/A',
+            # 'publicity': obj.publicity_id.publicity if obj.publicity_id else 'N/A',
+            'days_transmit': obj.publicity_id.days_transmit if obj.publicity_id else 'N/A',
+            'sending_day': make_naive(obj.sending_day),  # Convertir la fecha a naive
+            'reference_number': obj.reference_number,
+            # 'payment_proof_base64': obj.payment_proof,  # Si necesitas convertir la imagen, puedes hacerlo aquí
+            'payment_status': obj.payment_status
+        }
+
+        # Si se especifican campos, exportar solo esos
+        if fields:
+            for field in fields:
+                data.append(field_mapping.get(field, 'N/A'))
+        else:
+            # Si no hay campos especificados, exportar todos los campos por defecto
+            for field in self.Meta.fields:
+                data.append(field_mapping.get(field, 'N/A'))
+
+        return data
+    
 
 @admin.register(Payment)
 class PaymentAdmin(ExportActionModelAdmin):
@@ -180,24 +216,10 @@ class PaymentAdmin(ExportActionModelAdmin):
 
     # Agregar el filtro personalizado
     list_filter = ['payment_status']
-
-    # def changelist_view(self, request, extra_context=None):
-    #     # Verifica si no hay ningún parámetro GET aplicado y si la sesión no tiene la bandera 'has_redirected'
-    #     print('entro')
-    #     if not request.GET and not request.session.get('has_redirected', False):
-    #         print('redirect')
-    #         # Marca en la sesión que ya se ha hecho la redirección
-    #         request.session['has_redirected'] = True
-    #         # Redirige a "Pending"
-    #         return redirect(f"{request.path}?payment_status__exact=pending")
-    #     # Si hay un filtro aplicado o es una visita posterior, no redirige y muestra los resultados filtrados
-    #     response = super().changelist_view(request, extra_context=extra_context)
-    #     # Resetea la bandera si se han aplicado filtros
-    #     if request.GET :
-    #         print(request.GET['payment_status__exact'])
-    #         print('ultimo if')
-    #         request.session['has_redirected'] = False
-    #     return response
+    
+    # Activar el formulario para seleccionar el formato de exportación
+    export_form_class = PaymentExportForm  # Usamos el formulario personalizado
+    export_template_name = 'admin/import_export/export.html'  # Plantilla por defecto
     
 # Métodos para mostrar imágenes en el admin
     def publicity_image(self, obj):
@@ -257,18 +279,70 @@ class PaymentAdmin(ExportActionModelAdmin):
         return obj.publicity_id.days_transmit if obj.publicity_id else 'N/A'
     days_transmit.short_description = 'dias de transmición'
     
+    def get_export_data(self, file_format, request, queryset, *args, **kwargs):
+        """
+        Personalizar los datos exportados para incluir solo los campos seleccionados.
+        Si el formato es PDF, elimina las columnas relacionadas con imágenes.
+        """
+        export_form = kwargs.get('export_form') or self.export_form_class(
+            formats=self.get_export_formats(),
+            resources=[self.resource_class()],
+            data=request.POST
+        )
+
+        if export_form.is_valid():
+            # Obtenemos los campos seleccionados
+            fields_to_export = export_form.cleaned_data.get('fields_to_export', [])
+
+            # Verificamos si hay campos seleccionados
+            if fields_to_export:
+                # Exportar solo los campos seleccionados
+                dataset = self.resource_class().export(queryset, export_fields=fields_to_export)
+            else:
+                # Si no se seleccionan columnas, exportamos todos los campos, excepto imágenes en PDF
+                fields_to_export = [field for field in self.resource_class().Meta.fields]
+
+                dataset = self.resource_class().export(queryset, export_fields=fields_to_export)
+
+            # Exportar los datos en el formato solicitado
+            return file_format.export_data(dataset)
+        else:
+            # Manejar el caso de un formulario inválido
+            print("Errores del formulario: ", export_form.errors)
+            return None
+    
     def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        queryset = queryset.select_related('publicity_id').filter(publicity_id__review_result='accepted')
+        # Obtener el queryset base
+        queryset = super().get_queryset(request).select_related('publicity_id__auth_user')
+
+        if request.method == 'POST':
+            form = self.export_form_class(
+                formats=self.get_export_formats(),  
+                resources=[self.resource_class()],
+                data=request.POST
+            )
+
+            if form.is_valid():
+                # Fechas
+                start_date = form.cleaned_data.get('start_date')
+                end_date = form.cleaned_data.get('end_date')
+
+                if start_date:
+                    queryset = queryset.filter(publicity_id__auth_user__date_joined__gte=start_date)
+                if end_date:
+                    queryset = queryset.filter(publicity_id__auth_user__date_joined__lte=end_date)
+
         return queryset
 
-    # Sobrescribir el método export_action
-    def export_action(self, request, *args, **kwargs):
-        # Obtener el queryset
-        queryset = self.get_queryset(request)
-        
-        # Llamar a la función export_with_images
-        return export_with_images(queryset)
+    def get_export_formats(self):
+        """Retorna los formatos disponibles para la exportación"""
+        return [
+            XLSX,
+            PDF  # Añadimos el formato PDF
+        ]
+
+
+
 
 class DataUserResource(resources.ModelResource):
     # Definir campos personalizados para exportación
@@ -279,29 +353,78 @@ class DataUserResource(resources.ModelResource):
     email = fields.Field(attribute='auth_user__email', column_name='Correo')
     date_joined = fields.Field(attribute='auth_user__date_joined', column_name='Fecha de Registro')
     is_active = fields.Field(attribute='auth_user__is_active', column_name='Estado de Usuario')
-    phone = fields.Field(column_name='Numero de Telefono')
-    sector = fields.Field(column_name='Sector de vivienda')
-    
+    phone = fields.Field(attribute='phone', column_name='Numero de Telefono')
+    sector = fields.Field(attribute='sector', column_name='Sector de vivienda')
+
     class Meta:
         model = DataUser
         fields = (
-            'auth_user',
             'username', 
-            'date_joined',
             'first_name', 
             'last_name', 
             'last_login', 
             'email', 
+            'date_joined',
             'phone', 
             'sector', 
             'is_active'
-            
         )
-        export_order = fields  # Opcional: Define el orden de exportación
 
-    def get_queryset(self):
-        # Optimizamos las consultas utilizando select_related
-        return super().get_queryset().select_related('auth_user')
+    def get_export_headers(self, fields=None):
+        """
+        Genera los encabezados de las columnas en base a los campos seleccionados.
+        """
+        headers = []
+        # Si hay campos seleccionados, obtenemos sus nombres
+        for field in fields or self.get_fields():
+            headers.append(self.fields[field].column_name or field)
+        return headers
+
+    def export_resource(self, obj, fields=None):
+        """
+        Exporta un objeto en función de los campos seleccionados.
+
+        :param obj: El objeto (instancia de DataUser) a exportar.
+        :param fields: Los campos que se deben exportar.
+        :returns: Una lista con los valores exportados.
+        """
+        data = []
+        
+        # Mapeo de campos de DataUser y campos relacionados de auth_user
+        field_mapping = {
+            'username': obj.auth_user.username if obj.auth_user else 'N/A',
+            'first_name': obj.auth_user.first_name if obj.auth_user else 'N/A',
+            'last_name': obj.auth_user.last_name if obj.auth_user else 'N/A',
+            'last_login': make_naive(obj.auth_user.last_login) if obj.auth_user else 'N/A',
+            'email': obj.auth_user.email if obj.auth_user else 'N/A',
+            'date_joined': make_naive(obj.auth_user.date_joined) if obj.auth_user else 'N/A',
+            'phone': obj.phone,
+            'sector': obj.sector,
+            'is_active': obj.auth_user.is_active if obj.auth_user else 'N/A',
+        }
+
+        # Si se especifican campos, exportar solo esos
+        if fields:
+            for field in fields:
+                data.append(field_mapping.get(field, 'N/A'))
+        else:
+            # Si no hay campos especificados, exportar todos los campos por defecto
+            for field in self.Meta.fields:
+                data.append(field_mapping.get(field, 'N/A'))
+
+        return data
+    
+    
+
+
+
+class FormatSelectForm(forms.Form):
+    FORMAT_CHOICES = [
+        ('xlsx', 'Excel (XLSX)'),
+        ('pdf', 'PDF')
+    ]
+    export_format = forms.ChoiceField(choices=FORMAT_CHOICES, label='Formato de exportación')
+
 
 @admin.register(DataUser)
 class DataUserAdmin(ExportActionModelAdmin):
@@ -317,8 +440,12 @@ class DataUserAdmin(ExportActionModelAdmin):
         'date_joined',
         'is_active'
     ]
-
-    # Métodos para obtener datos del modelo relacionado auth_user
+    
+    # Activar el formulario para seleccionar el formato de exportación
+    export_form_class = DataUserExportForm  # Usamos el formulario personalizado
+    export_template_name = 'admin/import_export/export.html'  # Plantilla por defecto
+    
+        # Métodos para obtener datos del modelo relacionado auth_user
     def username(self, obj):
         return obj.auth_user.username if obj.auth_user else 'N/A'
     username.short_description = 'Nombre de Usuario'
@@ -347,27 +474,71 @@ class DataUserAdmin(ExportActionModelAdmin):
         return obj.auth_user.is_active if obj.auth_user else 'N/A'
     is_active.short_description = 'Estado de Usuario'
     
+    
     def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.select_related('auth_user')
+        # Obtener el queryset base
+        queryset = super().get_queryset(request).select_related('auth_user')
 
-    def export_action(self, request, *args, **kwargs):
-        # Especificamos el formato (puedes cambiarlo si prefieres otro formato)
-        export_format = XLSX()
+        if request.method == 'POST':
+            form = self.export_form_class(
+                formats=self.get_export_formats(),  
+                resources=[self.resource_class()],
+                data=request.POST
+            )
 
-        # Obtenemos el recurso de la clase directamente
-        resource = self.resource_class()
+            if form.is_valid():
+                # Fechas
+                start_date = form.cleaned_data.get('start_date')
+                end_date = form.cleaned_data.get('end_date')
 
-        # Obtenemos el queryset
-        queryset = self.get_queryset(request)
-        
-        # Exportamos el dataset
-        dataset = resource.export(queryset)
-        
-        # Preparamos la respuesta con el archivo a exportar
-        response = HttpResponse(
-            export_format.export_data(dataset),
-            content_type=export_format.get_content_type()
+                if start_date:
+                    queryset = queryset.filter(auth_user__date_joined__gte=start_date)
+                if end_date:
+                    queryset = queryset.filter(auth_user__date_joined__lte=end_date)
+
+        return queryset
+
+
+    def get_export_data(self, file_format, request, queryset, *args, **kwargs):
+        """
+        Personalizar los datos exportados para incluir solo los campos seleccionados.
+        """
+        export_form = kwargs.get('export_form') or self.export_form_class(
+            formats=self.get_export_formats(),
+            resources=[self.resource_class()],
+            data=request.POST
         )
-        response['Content-Disposition'] = f'attachment; filename=Datos_de_Usuarios_{timezone.now()}.{export_format.get_extension()}'
-        return response
+
+        if export_form.is_valid():
+            # Obtenemos los campos seleccionados
+            fields_to_export = export_form.cleaned_data.get('fields_to_export', [])
+
+            # Verificamos si hay campos seleccionados
+            if fields_to_export:
+                # Exportar solo los campos seleccionados
+                dataset = self.resource_class().export(queryset, export_fields=fields_to_export)
+            else:
+                
+                fields_to_export = [field for field in self.resource_class().Meta.fields]
+                
+                # Exportar los datos con los campos seleccionados (o todos si no se seleccionaron campos)
+                dataset = self.resource_class().export(queryset, export_fields=fields_to_export)
+                
+            # Exportar los datos en el formato solicitado
+            return file_format.export_data(dataset)
+        else:
+            # Manejar el caso de un formulario inválido
+            print("Errores del formulario: ", export_form.errors)
+            return None
+
+    
+    
+    def get_export_formats(self):
+        """Retorna los formatos disponibles para la exportación"""
+        return [
+            XLSX,
+            PDF  # Añadimos el formato PDF
+        ]
+
+    
+    

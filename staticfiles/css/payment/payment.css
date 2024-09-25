@@ -1,0 +1,82 @@
+body {
+    background-color: #e4d9ff;
+
+}
+
+.card {
+    box-shadow: #ffffff;
+    border-radius: 15px;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #000000;
+}
+
+/* Personaliza el color del contenedor principal aquí */
+.card-body {
+    padding: 1.5rem;
+    background-color: #219ebc;
+    color: #000000;
+    border-radius: 15px;
+    /* Ajusta el valor según tus necesidades */
+}
+
+/* Personaliza el color del contenedor principal aquí */
+.card-body2 {
+    padding: 1.5rem;
+    background-color: #ffb703;
+    color: #000000;
+    border-radius: 15px;
+}
+
+.form-group p {
+    color: #000000;
+    font-style: normal;
+    background-color: #e4d9ff;
+    border-radius: 5px;
+    text-indent: 56px;
+    /* Ajusta el valor según tus necesidades */
+
+
+}
+
+.form-control-file {
+    color: #000000;
+    font-style: normal;
+    background-color: #e4d9ff;
+
+
+}
+
+.btn-primary {
+    background-color: #ffb703;
+    border-color: #ffb703;
+    color: #000000;
+
+}
+
+.btn-primary:hover {
+    background-color: #2f2c79;
+    border-color: #2f2c79;
+    color: #ffffff;
+}
+
+.btn-secondary {
+    background-color: #e4d9ff;
+    border-color: #e4d9ff;
+    color: #000000;
+}
+
+.btn-secondary:hover {
+    background-color: #2f2c79;
+    border-color: #2f2c79;
+    color: #ffffff;
+}
+
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1rem;
+    }
+}

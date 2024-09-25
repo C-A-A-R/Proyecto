@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Correo en MAVI</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #e4d9ff; color: #fff; line-height: 1.6;">
+    <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #219abc; border-radius: 10px; box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);">
+        <h2 style="color: #fff;">Solicitud de Confirmación de Correo</h2>
+        <p>Hola {{ user.username }},</p>
+        <p>Haz solicitado crear una cuenta en MAVI. Haz clic en el enlace de abajo para terminar tu registro y confirmar el correo:</p>
+        <p><a href="{{ reset_link }}" style="display: inline-block; padding: 10px 20px; margin-top: 20px; background-color: #ffdd00; color: #222; text-decoration: none; border-radius: 5px;">Restablecer Contraseña</a></p>
+        <p>Si no solicitaste este registro, puedes ignorar este correo.</p>
+        <p style="margin-top: 20px; font-size: 12px; color: #fff;">Gracias, <br>El equipo de soporte</p>
+    </div>
+</body>
+</html>

@@ -23,7 +23,7 @@
                             {% csrf_token %}
                             <!-- Input para el número de referencia -->
                             <div class="form-group">
-                                <label for="referenceNumber">Número de Referencia</label>
+                                <label for="referenceNumber">Número de Referencia. (opcional)</label>
                                 <input type="text" class="form-control" id="referenceNumber" 
                                 name="reference_number" placeholder="Ingrese el número de referencia" >
                             </div>
@@ -36,9 +36,9 @@
                             <!-- Botón para subir una imagen -->
                             <div class="form-group1 mb-5">
                                 <label for="uploadImage">Subir Imagen</label>
-                                <input type="file" class="form-control-file" id="uploadImage" name="payment_proof">
+                                <input type="file" class="form-control-file" id="uploadImage" name="payment_proof" required>
                             </div>
-
+                            <input type="hidden" name="publicity_id" value="{{ publicity_id }}">
                             <!-- Botones de enviar y cancelar -->
                             <div class="form-group mb-3 text-center">
                                 <!-- Grupo de formulario con margen inferior y centrado de texto -->

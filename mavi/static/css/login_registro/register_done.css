@@ -1,0 +1,52 @@
+body {
+
+    background-color: #e4d9ff !important; 
+
+}
+
+.body-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    height: 100vh;
+    padding: 20px;
+}
+.box {
+    border-radius: 15px;
+    background-color: #219abc;
+    
+    box-sizing: border-box;
+    width: 90%;
+    max-width: 800px;
+    background-position: 50vh;
+    color: #fff;
+    
+}
+
+.text {
+    font-size: 1.5rem;
+    margin-top: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.title {
+    text-align: center;
+    font-size: 2rem;
+}
+
+.a {
+    margin-top: 20px;
+    display: block;
+    font-size: 1.5rem;
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+.a:hover {
+    color: #022188; /* Cambia este color al que desees cuando se haga hover */
+    text-decoration: underline;
+    text-decoration-color: #022188; /* Línea inferior del color deseado */
+}

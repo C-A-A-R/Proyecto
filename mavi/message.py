@@ -16,3 +16,11 @@ PAYMENT_SAVE_ERROR_MESSAGE = "Error al enviar el pago. Por favor, intenta nuevam
 # Mensajes para Recuperación de contraseña
 PASSWORD_RESET_VALIDATION_ERROR_MESSAGE = "Las credenciales ingresadas no coinciden"
 PASSWORD_RESET_TOKEN_ERROR_MESSAGE = "Error en el enlace por favor intentelo nuevamente"
+
+# Mensajes para Borrado de Publicidad
+PUBLICITY_DELETE_SUCCESS_MESSAGE = "La publicidad ha sido borrada con éxito."
+PUBLICITY_DELETE_ERROR_MESSAGE = "Error al borrar la publicidad. Por favor, intenta nuevamente."
+
+# Mensajes para Resubida de Publicidad
+PUBLICITY_REUPLOAD_SUCCESS_MESSAGE = "La publicidad ha sido resubida con éxito."
+PUBLICITY_REUPLOAD_ERROR_MESSAGE = "Error al resubir la publicidad. Por favor, intenta nuevamente."

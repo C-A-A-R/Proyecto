@@ -1,0 +1,85 @@
+/* styles.css */
+
+/* Cambiar el fondo de la página */
+body {
+    background-color: #e4d9ff;
+    /* Cambia #f0f0f0 al color que desees */
+}
+
+/* Cambiar el fondo de las tarjetas (tablas) */
+.card {
+    background-color: #219ebc;
+    /* Cambia color */
+    border-radius: 10px;
+    /* Cambia el radio de borde si lo deseas */
+    box-shadow: #219ebc;
+    /* Cambia la sombra si lo deseas */
+}
+
+.bg-custom1 {
+    background-color: #219ebc;
+    /* Color personalizado 1 */
+}
+
+.bg-custom2 {
+    background-color: #e4d9ff;
+    /* Color personalizado 2 */
+}
+
+/* Cambiar el color del texto dentro de las tarjetas */
+.card-header h2,
+.card-body .list-group-item,
+.card-footer a {
+    color: #000000;
+    /* Cambiar color */
+}
+
+/* Cambiar el color de fondo de los botones */
+.btn-primary {
+    background-color: #ffb703;
+    /* Cambia color */
+    border-color: #219ebc;
+    /* Cambiar color */
+}
+
+.btn-primary:hover {
+    background-color: #273469;
+    /* Cambia color */
+    border-color: #273469;
+    /* Cambiar color */
+}
+
+/* Cambiar el color del texto de los botones */
+.btn-primary {
+    color: #000000;
+    /* Cambia color */
+}
+
+.list-group-item {
+    border: none;
+    /* Elimina el borde de los elementos de la lista */
+}
+
+.cd-currency {
+    font-size: 40px;
+    /* Ajusta el tamaño del texto */
+    font-weight: bold;
+    /* Ajusta el grosor del texto */
+
+}
+
+.text-center {
+    padding: 0px;
+    /* Ajusta el espaciado alrededor del contenedor */
+    color: #000000
+}
+
+.list-group-item strong {
+    font-weight: bold;
+    /* Ajusta el grosor del texto */
+}
+
+.card-footer {
+    font-weight: bold;
+    /* Ajusta el grosor del texto seleccionar */
+}

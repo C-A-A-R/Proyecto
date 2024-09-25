@@ -7,7 +7,26 @@ import uuid
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.template.loader import render_to_string
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.html import strip_tags
+from django.urls import reverse
 from .models import DataUser, Publicity, Payment, TransmissionDay
+from .message import PUBLICITY_DELETE_SUCCESS_MESSAGE, PUBLICITY_REUPLOAD_SUCCESS_MESSAGE
+from django.utils.timezone import is_aware
+from datetime import datetime, timezone
+
+
+def make_naive(value):
+    """
+    Si el valor es un objeto datetime con tzinfo, lo convertimos en naive.
+    """
+    if isinstance(value, datetime) and is_aware(value):
+        return value.astimezone(timezone.utc).replace(tzinfo=None)
+    return value
 
 
 def get_images_user(user_id):
@@ -31,9 +50,8 @@ def get_images_user(user_id):
 
     queryset = []
 
-
     for publicity, payment in zip(publicities,payments):
-        publicity.publicity = str(publicity.publicity).replace('mavi/static/', '')
+        publicity.publicity = str(publicity.publicity)
             
         if (publicity.review_result == 'rejected') and (not payment):
             publicity.rejected_image = True
@@ -61,11 +79,22 @@ def get_images_user(user_id):
             queryset.append(publicity)
             
         else:
+            publicity.finished = True
             queryset.append(publicity)
 
     return queryset
 
+
 def reupload_publicity(request, publicity_id):
+    """Funcion que resube una publicidad.
+
+    Args:
+        request (request): Peticion del navegador
+        publicity_id (obj): Instancia de la clase publicity
+
+    Returns:
+        redirect: Redireccion a dashboard
+    """
     publicity = Publicity.objects.get(id = publicity_id)
     # Marca la publicidad original como removida
     publicity.removed = True
@@ -80,14 +109,25 @@ def reupload_publicity(request, publicity_id):
     new_publicity.save()  # Guarda la nueva instancia en la base de datos
 
     # Agrega un mensaje de éxito
-    messages.success(request, 'La publicidad ha sido re-subida correctamente.')
+    messages.success(request, PUBLICITY_REUPLOAD_SUCCESS_MESSAGE)
     
     return redirect('/dashboard')
 
+
 def delete_publicity(request, publicity_id):
+    """Funcion que borra logicamente una publicidad.
+
+    Args:
+        request (request): Peticion del navegador
+        publicity_id (obj): Instancia de la clase publicity
+
+    Returns:
+        redirect: Redireccion a dashboard
+    """
+    messages.success(request, PUBLICITY_DELETE_SUCCESS_MESSAGE)
     Publicity.objects.filter(id=publicity_id).update(removed=True)
     return redirect('/dashboard')
-    
+
 
 def generate_unique_name(publicity):
     try:
@@ -116,22 +156,23 @@ def find_day_available():
         date: Fecha del primer día disponible.
     """
     
-    hoy = timezone.now().date()
+    today = timezone.now().date()
 
     # Realizar la consulta para encontrar el primer día disponible
     day_available = (TransmissionDay.objects
-                      .filter(transmission_day__gte=hoy)
-                      .values('transmission_day')
-                      .annotate(total=Count('id'))
-                      .filter(total__lt=30)
-                      .order_by('transmission_day')
-                      .first())
-
+                        .filter(transmission_day__gte=today)
+                        .values('transmission_day')
+                        .annotate(total=Count('id'))
+                        .filter(total__lt=30)
+                        .order_by('transmission_day')
+                        .first()
+                    )
+    
     if day_available:
         return day_available['transmission_day']
     
     else:
-        return hoy  # Si no se encuentra ningún día disponible, devolver hoy
+        return today  # Si no se encuentra ningún día disponible, devolver hoy
 
 
 def schedule_publicity(publicity_id, days):
@@ -165,54 +206,76 @@ def schedule_publicity(publicity_id, days):
     return scheduled
     
 
-
-def save_puclicity(cd, form_publicity, user_id):
-    # Generar un nombre de archivo único para la publicidad
-        unique_name = generate_unique_name(form_publicity)
-        form_publicity.name = unique_name
-        
-        # Se genera una instancia del modelo Publicity y se crea un registro.
-        publicity = Publicity() 
-        publicity.auth_user = user_id
-        publicity.publicity = form_publicity
-        publicity.publicity_name = cd['name'][0]
-        publicity.days_transmit = cd['days'][0]
-        publicity.removed = False
-        publicity.save()
-
-
-def auntenticate(request, correo, contraseña):
-    """Funcion que auntentifica las credenciales del usuario, usando request, correo y contraseña.
+def send_emails(request, user, url_name, email_template):
+    """Funcion que envia un correo y negera una ruta temporal unica.
 
     Args:
-        request (request): El request de la vista.
-        correo (str): Correo al que se le desea iniciar la sesión.
-        contrase (str): Contraseña afiliada al usuario del correo
+        request (request): Peticion del navegador.
+        user (obj): Instancia de la clase User.
+        url_name (str): nombre de la ruta temporal unica 
+        email_template (str): template del correo que se enviara.
+    """    
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    reset_link = request.build_absolute_uri(
+        reverse(url_name, kwargs={'uidb64': uid, 'token': token})
+    )
 
-    Returns:
-        dict: {'mensaje':mensaje, 'estado':bool}
-    """
-    user = User.objects.filter(email=correo).exists()
-    if user:
-        user = User.objects.get(email=correo)
-        if user.password == contraseña:
-            request.session['id'] = user.id
-            
-        else:
-            return {'message':'La contraseña es incorrecta.', 'estado':True}
-    else:
-        return {'message':'El correo es invalido.', 'estado':False}
+    # Renderizar la plantilla HTML con el contexto
+    mail_subject = 'Restablecimiento de contraseña solicitado'
+    html_message = render_to_string(email_template, {
+        'user': user,
+        'reset_link': reset_link,
+    })
+    plain_message = strip_tags(html_message)  # Mensaje en texto plano como alternativa
+    from_email = 'aragozaca@gmail.com'
+    to_email = [user.email]
+
+    # Enviar el correo
+    send_mail(mail_subject, plain_message, from_email, to_email, html_message=html_message)
 
 
-def register(request, cd):
+def confirm_email(request, new_user):
+    """Funcion que llama a la funcion send_emails y le da los argumetos necesarios para enviar el correo de confirmacion.
+
+    Args:
+        request (request): Peticion del navegador.
+        new_user (obj): Instancia de la clase User.
+    """    
+    send_emails(request, new_user, url_name='activate_account', email_template='login_register/register_email.html')
+
+
+def save_puclicity(cd, advertising_image, user_id):
+    """Fucion que guarda la publicidad.
+
+    Args:
+        cd (dict): diccionario que contiene los datos necesarios para guardar los datos.
+        advertising_image (files): Imagen publicitaria que se esta guardando.
+        user_id (_type_): _description_
+    """    
+    
+    # Generar un nombre de archivo único para la publicidad
+    unique_name = generate_unique_name(advertising_image)
+    advertising_image.name = unique_name
+    
+    # Se genera una instancia del modelo Publicity y se crea un registro.
+    publicity = Publicity() 
+    publicity.auth_user = user_id
+    publicity.publicity = advertising_image
+    publicity.publicity_name = cd['name'][0]
+    publicity.days_transmit = cd['days'][0]
+    publicity.removed = False
+    publicity.save()
+
+
+def register(cd):
     """Funcion que registra al usuario guardando sus datos en el modelo de User de django.
 
     Args:
-        request (request): El request de la vista.
         cd (dict): diccionario que contiene los datos necesarios para el registro
 
     Returns:
-        dict: {'message':mensaje, 'status':bool}
+        dict: {'new_user':new_user, message':mensaje, 'status':bool}
     """
     # Verificar si ya hay un email y correo igual
     user = User.objects.filter(username=cd['user'][0]).exists()
@@ -226,17 +289,17 @@ def register(request, cd):
             new_user.first_name = cd['name'][0]
             new_user.last_name = cd['last_name'][0]
             new_user.email = cd['email'][0]
-            new_user.is_active = True
+            new_user.is_active = False
             new_user.save()
             
-            datos_nuevo_usuario = DataUser()
-            datos_nuevo_usuario.auth_user = new_user
-            datos_nuevo_usuario.sector = cd['sector'][0]
-            datos_nuevo_usuario.phone = cd['phone'][0]
-            datos_nuevo_usuario.save()
+            new_user_data = DataUser()
+            new_user_data.auth_user = new_user
+            new_user_data.sector = cd['sector'][0]
+            new_user_data.phone = cd['phone'][0]
+            new_user_data.save()
             
             message = '!A sido registrado exitosamente¡'
-            return {'message':message, 'status':True}
+            return {'new_user':new_user, 'message':message, 'status':True}
             
         # Indicar que el usuario o el email ya existe
     else:

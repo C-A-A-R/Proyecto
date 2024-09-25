@@ -39,7 +39,7 @@
             <h1>Iniciar Sesión</h1>
             <input name="user" type="text" placeholder="Usuario" required/>
             <input name="password" type="password" placeholder="Contraseña" required/>
-            <a href="#">Olvidaste tu contraseña?</a>
+            <a href="{% url "mavi:password_reset_request" %}">Olvidaste tu contraseña?</a>
             <button id="submit">Iniciar sesión</button>
           </form>
         </div>

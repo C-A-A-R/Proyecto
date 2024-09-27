@@ -17,7 +17,7 @@ from django.urls import reverse
 from .models import DataUser, Publicity, Payment, TransmissionDay
 from .message import PUBLICITY_DELETE_SUCCESS_MESSAGE, PUBLICITY_REUPLOAD_SUCCESS_MESSAGE
 from django.utils.timezone import is_aware
-from datetime import datetime, timezone
+from datetime import datetime, timezone as timezone_datetime
 
 
 def make_naive(value):
@@ -25,7 +25,7 @@ def make_naive(value):
     Si el valor es un objeto datetime con tzinfo, lo convertimos en naive.
     """
     if isinstance(value, datetime) and is_aware(value):
-        return value.astimezone(timezone.utc).replace(tzinfo=None)
+        return value.astimezone(timezone_datetime.utc).replace(tzinfo=None)
     return value
 
 

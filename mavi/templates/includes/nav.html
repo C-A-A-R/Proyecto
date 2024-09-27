@@ -3,7 +3,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container-fluid">
-      <a class="navbar-brand logo" href="{% url "mavi:index" %}">MAVI</a>
+      <a class="navbar-brand logo" href="{% if request.user.is_authenticated %}{% url 'mavi:dashboard' %}{% else %}{% url 'mavi:index' %}{% endif %}">MAVI</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -45,7 +45,7 @@
             {{ request.user.first_name }} 
           </a>
           <ul class="dropdown-menu">
-          <li><a class="dropdown-item" href="#">Perfil</a></li>
+          <li><a class="dropdown-item" href="{% url "mavi:profile" %}">Perfil</a></li>
           <li><a class="dropdown-item" href="{% url "mavi:logout" %}">Cerrar sesión</a></li>
           </ul>
       </li>

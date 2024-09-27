@@ -13,6 +13,7 @@ urlpatterns = [
     # Rutas de app.
     path('', views.index, name='index'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('profile/', views.profile, name='profile'),
     path('login_register/', views.login_register, name='login_register'),
     path("activate_account_view/", views.activate_account_view, name="activate_account"),
     path("register_done_viewes/", views.register_done_viewes, name="register_done"),

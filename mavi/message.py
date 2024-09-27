@@ -24,3 +24,8 @@ PUBLICITY_DELETE_ERROR_MESSAGE = "Error al borrar la publicidad. Por favor, inte
 # Mensajes para Resubida de Publicidad
 PUBLICITY_REUPLOAD_SUCCESS_MESSAGE = "La publicidad ha sido resubida con éxito."
 PUBLICITY_REUPLOAD_ERROR_MESSAGE = "Error al resubir la publicidad. Por favor, intenta nuevamente."
+
+# Mensajes para Actualizar Datos de Perfil
+PROFILE_UPDATE_REQUIRED_FIELDS_ERROR_MESSAGE = "Todos los campos son obligatorios."
+PROFILE_UPDATE_NOT_FOUND_ERROR_MESSAGE = "Error: No se pudo encontrar el perfil del usuario."
+PROFILE_UPDATE_SUCCESS_MESSAGE = "Tu perfil ha sido actualizado correctamente."

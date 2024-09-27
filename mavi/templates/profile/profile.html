@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Perfil de Usuario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static "css/profile/profile.css" %}">
+</head>
+<body>
+    {% include "includes/message.html" %}
+
+    <!-- Flecha de regreso -->
+    <a href="{% url "mavi:dashboard" %}" class="back-arrow" onclick="window.history.back();">
+        <span class="arrow-left"></span> Regresar
+    </a>
+
+    <div class="profile-container mt-5">
+        <!-- Sección para la imagen de perfil -->
+        <div class="profile-picture">
+            <div class="image-placeholder">
+                <div class="nav-item dropdown">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-person-circle img" viewBox="0 0 16 16">
+                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de los datos del usuario -->
+        <div class="user-data">
+            <h2>Tus Datos</h2>
+            <form id="profile-form" method="post">
+                {% csrf_token %}
+                <!-- Agrupar el nombre y apellido en un contenedor -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombre">Nombre</label>
+                        <input type="text" id="nombre" name="first_name" value="{{ request.user.first_name }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="apellidos">Apellido</label>
+                        <input type="text" id="apellidos" name="last_name" value="{{ request.user.last_name }}" readonly>
+                    </div>
+                </div>
+
+                <!-- Agrupar el usuario y la contraseña en un contenedor -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="usuario">Usuario</label>
+                        <input type="text" id="usuario" name="username" value="{{ request.user.username }}" readonly>
+                    </div>
+                </div>
+                <!-- Agrupar email y sector en un contenedor -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" value="{{ request.user.email }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="sector">Sector donde vive</label>
+                        <input type="text" id="sector" name="sector" value="{{ user.sector }}" readonly>
+                    </div>
+                </div>
+
+                <!-- Campo para el teléfono móvil -->
+                <div class="form-row">
+                    <div class="form-group phone-input">
+                        <label for="telefono" class="telefono-label">Teléfono</label>
+                        <div class="phone-container">
+                            <select id="codigo-operador" name="operator_code" disabled>
+                                <option value="0424" {% if user.phone|slice:":4" == "0424" %}selected{% endif %}>0424</option>
+                                <option value="0414" {% if user.phone|slice:":4" == "0414" %}selected{% endif %}>0414</option>
+                                <option value="0426" {% if user.phone|slice:":4" == "0426" %}selected{% endif %}>0426</option>
+                                <option value="0416" {% if user.phone|slice:":4" == "0416" %}selected{% endif %}>0416</option>
+                                <option value="0412" {% if user.phone|slice:":4" == "0412" %}selected{% endif %}>0412</option>
+                            </select>
+                            <input type="tel" id="telefono" name="phone" value="{{ user.phone|slice:"4:" }}" readonly>
+                        </div>
+                    </div>
+                </div>                
+
+                <!-- Botón para habilitar la modificación de los campos seleccionados -->
+                <div class="modify-button">
+                    <button type="button" id="modify-btn">Modificar</button>
+                </div>
+                
+                <!-- Contenedor para los mensajes de error -->
+                <div id="error-container"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Enlace al archivo JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static "js/profile/profile.js" %}"></script>
+</body>
+</html>

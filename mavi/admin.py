@@ -9,70 +9,7 @@ from .form_admin import DataUserExportForm, PaymentExportForm
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Group
 from django.utils.html import format_html
-from reportlab.lib.pagesizes import A4,landscape
-from reportlab.pdfgen import canvas
-from io import BytesIO
-
-
-class PDF(Format):
-    def get_title(self):
-        return "pdf"
-
-    def get_extension(self):
-        return "pdf"
-
-    def get_content_type(self):
-        return "application/pdf"
-
-    def export_data(self, dataset, **kwargs):
-        buffer = BytesIO()
-        pdf_canvas = canvas.Canvas(buffer, pagesize=landscape(A4))  # Usamos la orientación horizontal
-        width, height = landscape(A4)
-
-        # Definir las coordenadas iniciales
-        x = 50
-        y = height - 50  # Reducimos el margen superior
-
-        # Título del documento
-        pdf_canvas.setFont("Helvetica-Bold", 14)
-        pdf_canvas.drawString(x, y, "Exportación de Datos de Usuario")
-        y -= 40
-
-        # Escribir los nombres de las columnas
-        pdf_canvas.setFont("Helvetica-Bold", 12)
-        column_width = (width - 100) // len(dataset.headers)  # Ajustar el ancho de las columnas
-
-        for i, col in enumerate(dataset.headers):
-            pdf_canvas.drawString(x + (i * column_width), y, col)
-
-        y -= 20
-
-        # Escribir los datos
-        pdf_canvas.setFont("Helvetica", 10)
-        for row in dataset.dict:
-            if y < 50:  # Si la posición Y es demasiado baja, saltar a una nueva página
-                pdf_canvas.showPage()
-                pdf_canvas.setFont("Helvetica-Bold", 12)
-                y = height - 50  # Reiniciar la posición Y para la nueva página
-                
-                # Dibujar los encabezados en la nueva página
-                for i, col in enumerate(dataset.headers):
-                    pdf_canvas.drawString(x + (i * column_width), y, col)
-                y -= 20
-                pdf_canvas.setFont("Helvetica", 10)
-
-            for i, col in enumerate(dataset.headers):
-                pdf_canvas.drawString(x + (i * column_width), y, str(row[col]))
-            y -= 20
-
-        # Terminar el PDF
-        pdf_canvas.save()
-        pdf = buffer.getvalue()
-        buffer.close()
-        return pdf
-
-    def is_binary(self):
-        return True
+from .pdf import PDFPayment,PDFDataUser
 
 
 admin.site.unregister(Group)
@@ -97,9 +34,9 @@ class PublicityAdmin(admin.ModelAdmin):
                 '<img src="{}" />'
                 '</div>',
                 obj.pk,
-                obj.publicity.url.replace('/admin_app', '' ),
+                obj.publicity.url,
                 obj.pk,
-                obj.publicity.url.replace('/admin_app', '' )
+                obj.publicity.url
             )
         return "No Existe Publicidad"
     publicity_image.short_description = 'Publicidad'
@@ -231,9 +168,9 @@ class PaymentAdmin(ExportActionModelAdmin):
                 '<img src="{}" />'
                 '</div>',
                 obj.pk,
-                obj.publicity_id.publicity.url.replace('/admin_app', ''),
+                obj.publicity_id.publicity.url,
                 obj.pk,
-                obj.publicity_id.publicity.url.replace('/admin_app', '')
+                obj.publicity_id.publicity.url
             )
         return "No Hay Publicidad"
     publicity_image.short_description = 'Publicidad'
@@ -247,9 +184,9 @@ class PaymentAdmin(ExportActionModelAdmin):
                 '<img src="{}" />'
                 '</div>',
                 obj.pk,
-                obj.payment_proof.url.replace('/admin_app', ''),
+                obj.payment_proof.url,
                 obj.pk,
-                obj.payment_proof.url.replace('/admin_app', '')
+                obj.payment_proof.url
             )
         return "No Hay Captura de Pago"
     payment_proof_image.short_description = 'Captura de Pago'
@@ -338,10 +275,8 @@ class PaymentAdmin(ExportActionModelAdmin):
         """Retorna los formatos disponibles para la exportación"""
         return [
             XLSX,
-            PDF  # Añadimos el formato PDF
+            PDFPayment  # Añadimos el formato PDF
         ]
-
-
 
 
 class DataUserResource(resources.ModelResource):
@@ -352,7 +287,7 @@ class DataUserResource(resources.ModelResource):
     last_login = fields.Field(attribute='auth_user__last_login', column_name='Ultimo Inicio de Sesión')
     email = fields.Field(attribute='auth_user__email', column_name='Correo')
     date_joined = fields.Field(attribute='auth_user__date_joined', column_name='Fecha de Registro')
-    is_active = fields.Field(attribute='auth_user__is_active', column_name='Estado de Usuario')
+    is_active = fields.Field(attribute='auth_user__is_active', column_name='Actividad')
     phone = fields.Field(attribute='phone', column_name='Numero de Telefono')
     sector = fields.Field(attribute='sector', column_name='Sector de vivienda')
 
@@ -413,9 +348,6 @@ class DataUserResource(resources.ModelResource):
                 data.append(field_mapping.get(field, 'N/A'))
 
         return data
-    
-    
-
 
 
 class FormatSelectForm(forms.Form):
@@ -531,13 +463,11 @@ class DataUserAdmin(ExportActionModelAdmin):
             print("Errores del formulario: ", export_form.errors)
             return None
 
-    
-    
     def get_export_formats(self):
         """Retorna los formatos disponibles para la exportación"""
         return [
             XLSX,
-            PDF  # Añadimos el formato PDF
+            PDFDataUser  # Añadimos el formato PDF
         ]
 
     
